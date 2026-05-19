@@ -26,7 +26,7 @@ import com.teamflow.planner.data.entity.User;
  */
 @Database(
         entities = {Project.class, Task.class, TeamMember.class, User.class, Invitation.class},
-        version = 7,
+        version = 8,
         exportSchema = false
 )
 @TypeConverters({Converters.class})
