@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_search_projects"
+        android:icon="@android:drawable/ic_menu_search"
+        android:title="@string/search_projects"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        app:showAsAction="ifRoom|collapseActionView" />
+    <item
+        android:id="@+id/action_sync_now"
+        android:title="@string/sync_now"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_member_workload"
+        android:title="@string/member_workload"
+        app:showAsAction="never" />
+    <item
+        android:title="@string/theme_menu"
+        app:showAsAction="never">
+        <menu>
+            <item
+                android:id="@+id/action_theme_system"
+                android:title="@string/theme_system" />
+            <item
+                android:id="@+id/action_theme_light"
+                android:title="@string/theme_light" />
+            <item
+                android:id="@+id/action_theme_dark"
+                android:title="@string/theme_dark" />
+        </menu>
+    </item>
+    <item
+        android:id="@+id/action_logout"
+        android:title="Logout"
+        app:showAsAction="never" />
+</menu>

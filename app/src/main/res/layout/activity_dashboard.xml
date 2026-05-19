@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/space_bg"
+    tools:context=".DashboardActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        app:elevation="0dp">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:titleCentered="false">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@mipmap/ic_launcher_round" />
+
+                <TextView
+                    android:id="@+id/toolbarTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:text="@string/app_name"
+                    android:textAppearance="?attr/textAppearanceTitleLarge"
+                    android:textColor="@color/text_high_vibe"
+                    android:textStyle="bold"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+
+                <!-- Profile Action -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/buttonProfile"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginEnd="8dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardBackgroundColor="@color/space_glass"
+                    app:cardCornerRadius="18dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/neon_blue"
+                    app:strokeWidth="1.5dp">
+
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+                        <ImageView
+                            android:id="@+id/imageProfileToolbar"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerCrop"
+                            android:visibility="gone" />
+                        <TextView
+                            android:id="@+id/textProfileLetter"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:textColor="@color/neon_blue"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            tools:text="M" />
+                    </FrameLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+
+        </com.google.android.material.appbar.MaterialToolbar>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/nestedScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingBottom="100dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="24dp"
+            android:paddingTop="12dp">
+
+            <!-- Greeting Section -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp">
+
+                <TextView
+                    android:id="@+id/textGreeting"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Good Morning"
+                    android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                    android:textColor="@color/text_high_vibe"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/textSubtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/textGreeting"
+                    android:layout_marginTop="4dp"
+                    android:text="Here is your summary for today"
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:textColor="@color/text_mid_vibe" />
+
+                <TextView
+                    android:id="@+id/textStreak"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:textColor="@color/neon_gold"
+                    android:textStyle="bold"
+                    tools:text="🔥 5 Days" />
+            </RelativeLayout>
+
+            <!-- Insight Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                app:cardBackgroundColor="@color/space_glass"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="4dp"
+                app:strokeColor="@color/neon_cyan"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="20dp">
+
+                    <View
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:background="@drawable/circle_shape"
+                        android:backgroundTint="@color/neon_cyan" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_weight="1"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="@string/system_insight_message"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="@color/text_high_vibe" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Progress Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/GlassCard"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="20dp">
+
+                        <com.google.android.material.progressindicator.CircularProgressIndicator
+                            android:id="@+id/progressTeam"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:progress="78"
+                            app:indicatorColor="@color/neon_purple"
+                            app:indicatorSize="64dp"
+                            app:trackColor="@color/space_stroke"
+                            app:trackThickness="6dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:text="Team Progress"
+                            android:textAppearance="?attr/textAppearanceLabelLarge"
+                            android:textColor="@color/text_mid_vibe" />
+
+                        <TextView
+                            android:id="@+id/textTeamProgressPct"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="78%"
+                            android:textColor="@color/neon_purple"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/textTeamTaskCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="?attr/textAppearanceBodySmall"
+                            android:textColor="@color/text_low_vibe"
+                            tools:text="15 / 20 Done" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/GlassCard"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="20dp">
+
+                        <com.google.android.material.progressindicator.CircularProgressIndicator
+                            android:id="@+id/progressIndividual"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:progress="45"
+                            app:indicatorColor="@color/neon_blue"
+                            app:indicatorSize="64dp"
+                            app:trackColor="@color/space_stroke"
+                            app:trackThickness="6dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:text="My Tasks"
+                            android:textAppearance="?attr/textAppearanceLabelLarge"
+                            android:textColor="@color/text_mid_vibe" />
+
+                        <TextView
+                            android:id="@+id/textIndividualProgressPct"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="45%"
+                            android:textColor="@color/neon_blue"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/textIndividualTaskCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="?attr/textAppearanceBodySmall"
+                            android:textColor="@color/text_low_vibe"
+                            tools:text="5 / 11 Done" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+
+            <!-- Active Projects Header -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Active Projects"
+                    android:textAppearance="?attr/textAppearanceTitleLarge"
+                    android:textColor="@color/text_high_vibe"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/btnSeeAllProjects"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="See All"
+                    android:textColor="@color/neon_blue"
+                    android:textStyle="bold"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground" />
+            </LinearLayout>
+
+            <!-- Projects List -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerProjects"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                tools:itemCount="2"
+                tools:listitem="@layout/item_project" />
+
+            <TextView
+                android:id="@+id/textNoProjects"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:padding="32dp"
+                android:text="No projects found. Create one to begin."
+                android:textColor="@color/text_mid_vibe"
+                android:visibility="gone" />
+
+            <!-- Recent Activity -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="16dp"
+                android:text="Recent Activity"
+                android:textAppearance="?attr/textAppearanceTitleLarge"
+                android:textColor="@color/text_high_vibe"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:id="@+id/dailyFocusContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <TextView
+                android:id="@+id/textDailyFocusEmpty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:padding="16dp"
+                android:text="No tasks scheduled for today."
+                android:textColor="@color/text_low_vibe"
+                android:visibility="gone" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Floating Navigation Bar -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="24dp"
+        app:cardBackgroundColor="@color/space_glass"
+        app:cardCornerRadius="32dp"
+        app:cardElevation="12dp"
+        app:strokeColor="@color/glass_stroke"
+        app:strokeWidth="1.2dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="72dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp">
+
+            <ImageButton
+                android:id="@+id/btnNavHome"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_home_24"
+                android:padding="8dp"
+                android:scaleType="centerInside"
+                app:tint="@color/neon_blue" />
+
+            <ImageButton
+                android:id="@+id/btnNavMembers"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_groups_24"
+                android:padding="8dp"
+                android:scaleType="centerInside"
+                app:tint="@color/text_mid_vibe" />
+
+            <!-- Center Add Button -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_marginHorizontal="16dp"
+                app:cardBackgroundColor="@color/neon_blue"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:strokeWidth="0dp">
+
+                <ImageButton
+                    android:id="@+id/fabAddProject"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_add_24"
+                    android:padding="14dp"
+                    android:scaleType="centerInside"
+                    app:tint="@color/text_high_vibe" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <ImageButton
+                android:id="@+id/btnNavWorkload"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_assignment_24"
+                android:padding="8dp"
+                android:scaleType="centerInside"
+                app:tint="@color/text_mid_vibe" />
+
+            <ImageButton
+                android:id="@+id/btnNavProfile"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_member_24"
+                android:padding="8dp"
+                android:scaleType="centerInside"
+                app:tint="@color/text_mid_vibe" />
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

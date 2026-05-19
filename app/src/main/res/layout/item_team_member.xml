@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    style="@style/GlassCard">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/avatarContainer"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            app:cardCornerRadius="26dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/space_bg"
+            app:strokeWidth="1.5dp"
+            app:strokeColor="@color/neon_cyan"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+                <ImageView
+                    android:id="@+id/imageMemberProfile"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone" />
+                <TextView
+                    android:id="@+id/textAvatarLetter"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:textAppearance="?attr/textAppearanceTitleLarge"
+                    android:textColor="@color/neon_cyan"
+                    android:textStyle="bold"
+                    tools:text="A" />
+            </FrameLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Online Indicator -->
+        <View
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:background="@drawable/circle_shape"
+            android:backgroundTint="@color/neon_green"
+            app:layout_constraintBottom_toBottomOf="@id/avatarContainer"
+            app:layout_constraintEnd_toEndOf="@id/avatarContainer" />
+
+        <TextView
+            android:id="@+id/textMemberName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textColor="@color/text_high_vibe"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@+id/actionsContainer"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/avatarContainer"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_chainStyle="packed"
+            tools:text="Member Name" />
+
+        <LinearLayout
+            android:id="@+id/actionsContainer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/textMemberName"
+            app:layout_constraintTop_toBottomOf="@id/textMemberName">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonViewTasks"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minHeight="40dp"
+                android:paddingStart="0dp"
+                android:text="View Tasks"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
+                android:textColor="@color/neon_blue"
+                app:icon="@drawable/ic_member_24"
+                app:iconSize="14dp"
+                app:iconTint="@color/neon_blue" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonRemoveMember"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:minHeight="40dp"
+                android:text="Remove"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
+                android:textColor="@color/neon_pink" />
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

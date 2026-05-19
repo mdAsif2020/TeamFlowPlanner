@@ -1,0 +1,90 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Group to center the logo -->
+    <group
+        android:translateX="0"
+        android:translateY="0">
+
+        <!-- The Outer Team Circle (3 heads and connecting arcs) -->
+        <!-- Arcs with gradients -->
+        <path
+            android:pathData="M54,26 A32,32 0 0,0 26.2,70 M81.8,70 A32,32 0 0,0 54,26 M30,78 A32,32 0 0,0 78,78"
+            android:strokeWidth="4"
+            android:strokeLineCap="round">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:startX="20"
+                    android:startY="20"
+                    android:endX="88"
+                    android:endY="88"
+                    android:type="linear">
+                    <item android:offset="0" android:color="#00D2FF" /> <!-- Cyan -->
+                    <item android:offset="0.5" android:color="#3A7BD5" /> <!-- Blue -->
+                    <item android:offset="1" android:color="#9D50BB" /> <!-- Purple -->
+                </gradient>
+            </aapt:attr>
+        </path>
+
+        <!-- Heads -->
+        <!-- Top Head -->
+        <path
+            android:pathData="M54,12m-7,0a7,7 0 1,1 14,0a7,7 0 1,1 -14,0"
+            android:fillColor="#3A7BD5" />
+        <!-- Bottom Left Head -->
+        <path
+            android:pathData="M22,78m-7,0a7,7 0 1,1 14,0a7,7 0 1,1 -14,0"
+            android:fillColor="#00D2FF" />
+        <!-- Bottom Right Head -->
+        <path
+            android:pathData="M86,78m-7,0a7,7 0 1,1 14,0a7,7 0 1,1 -14,0"
+            android:fillColor="#9D50BB" />
+
+        <!-- Inner Flow Lines -->
+        <!-- Top Line -->
+        <path
+            android:pathData="M44,42 L62,42 C66,42 66,50 62,50 L44,50"
+            android:strokeWidth="5"
+            android:strokeColor="#00D2FF"
+            android:strokeLineCap="round" />
+        <path
+            android:pathData="M44,42m-3,0a3,3 0 1,1 6,0a3,3 0 1,1 -6,0"
+            android:fillColor="#FFFFFF" />
+
+        <!-- Middle Line -->
+        <path
+            android:pathData="M44,58 L62,58"
+            android:strokeWidth="5"
+            android:strokeColor="#3A7BD5"
+            android:strokeLineCap="round" />
+        <path
+            android:pathData="M44,58m-3,0a3,3 0 1,1 6,0a3,3 0 1,1 -6,0"
+            android:fillColor="#FFFFFF" />
+
+        <!-- Bottom Line -->
+        <path
+            android:pathData="M44,74 L62,74"
+            android:strokeWidth="5"
+            android:strokeColor="#9D50BB"
+            android:strokeLineCap="round" />
+        <path
+            android:pathData="M44,74m-3,0a3,3 0 1,1 6,0a3,3 0 1,1 -6,0"
+            android:fillColor="#FFFFFF" />
+
+        <!-- Checkmark Circle -->
+        <path
+            android:pathData="M68,74m-6,0a6,6 0 1,1 12,0a6,6 0 1,1 -12,0"
+            android:fillColor="#FFFFFF" />
+        <path
+            android:pathData="M65,74 l2,2 l4,-4"
+            android:strokeWidth="1.5"
+            android:strokeColor="#9D50BB"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+
+    </group>
+</vector>

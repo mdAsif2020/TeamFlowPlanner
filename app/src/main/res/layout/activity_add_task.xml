@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/space_bg"
+    tools:context=".AddTaskActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        app:elevation="0dp">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:navigationIconTint="@color/text_high_vibe" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <TextView
+                android:id="@+id/textHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/add_task"
+                android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                android:textColor="@color/text_high_vibe"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/add_task_subtitle"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/text_mid_vibe" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                style="@style/GlassCard">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="24dp">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/task_title"
+                        app:boxStrokeColor="@color/neon_blue"
+                        app:hintTextColor="@color/neon_blue">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/inputTitle"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textCapSentences"
+                            android:textColor="@color/text_high_vibe" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:hint="@string/task_description"
+                        app:boxStrokeColor="@color/neon_blue"
+                        app:hintTextColor="@color/neon_blue">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/inputDescription"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="top"
+                            android:inputType="textCapSentences|textMultiLine"
+                            android:minLines="3"
+                            android:textColor="@color/text_high_vibe" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:hint="@string/task_notes"
+                        app:boxStrokeColor="@color/neon_blue"
+                        app:hintTextColor="@color/neon_blue">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/inputNotes"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="top"
+                            android:inputType="textCapSentences|textMultiLine"
+                            android:minLines="2"
+                            android:textColor="@color/text_high_vibe" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:hint="@string/assignee"
+                        app:startIconDrawable="@drawable/ic_member_24"
+                        app:startIconTint="@color/neon_cyan"
+                        app:boxStrokeColor="@color/neon_blue"
+                        app:hintTextColor="@color/neon_blue">
+
+                        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                            android:id="@+id/inputAssignee"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textPersonName"
+                            android:textColor="@color/text_high_vibe" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="8dp"
+                            android:hint="@string/priority"
+                            app:boxStrokeColor="@color/neon_purple"
+                            app:hintTextColor="@color/neon_purple">
+
+                            <AutoCompleteTextView
+                                android:id="@+id/autoCompletePriority"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="none"
+                                android:textColor="@color/text_high_vibe" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="8dp"
+                            android:hint="@string/status"
+                            app:boxStrokeColor="@color/neon_cyan"
+                            app:hintTextColor="@color/neon_cyan">
+
+                            <AutoCompleteTextView
+                                android:id="@+id/autoCompleteStatus"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="none"
+                                android:textColor="@color/text_high_vibe" />
+                        </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="24dp"
+                        android:text="@string/deadline"
+                        android:textAppearance="?attr/textAppearanceLabelLarge"
+                        android:textColor="@color/text_mid_vibe"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/buttonPickDate"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="56dp"
+                            android:layout_weight="1"
+                            app:cornerRadius="16dp"
+                            android:text="@string/pick_date"
+                            android:textColor="@color/neon_blue"
+                            app:strokeColor="@color/neon_blue" />
+
+                        <ImageButton
+                            android:id="@+id/buttonClearDeadline"
+                            android:layout_width="56dp"
+                            android:layout_height="56dp"
+                            android:layout_marginStart="12dp"
+                            android:background="@drawable/glass_card_bg"
+                            android:src="@drawable/ic_more_vert_24"
+                            app:tint="@color/neon_pink" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/textDeadlinePreview"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="@color/neon_cyan"
+                        tools:text="Deadline: April 20, 2026" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonSave"
+                style="@style/NeonButton"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:layout_marginTop="32dp"
+                android:backgroundTint="@color/neon_blue"
+                android:text="@string/save"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textStyle="bold" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonDeleteTask"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/delete"
+                android:textColor="@color/neon_pink"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/space_bg"
+    tools:context=".MemberProfileActivity">
+
+    <!-- Background Decorative Elements -->
+    <View
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:background="@drawable/circle_shape"
+        android:backgroundTint="@color/neon_purple"
+        android:alpha="0.05"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="-100dp"
+        android:layout_marginEnd="-100dp" />
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        app:elevation="0dp">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:navigationIconTint="@color/text_high_vibe"
+            app:title="" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <!-- Profile Identity Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="@style/GlassCard">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="32dp">
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardProfileImage"
+                        android:layout_width="110dp"
+                        android:layout_height="110dp"
+                        app:cardCornerRadius="55dp"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="@color/space_bg"
+                        app:strokeWidth="2dp"
+                        app:strokeColor="@color/neon_cyan">
+
+                        <FrameLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+                            <ImageView
+                                android:id="@+id/imageProfile"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:scaleType="centerCrop"
+                                android:visibility="gone" />
+                            <TextView
+                                android:id="@+id/textAvatarLetter"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:gravity="center"
+                                android:textAppearance="?attr/textAppearanceHeadlineLarge"
+                                android:textColor="@color/neon_cyan"
+                                android:textStyle="bold"
+                                tools:text="A" />
+                        </FrameLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <TextView
+                        android:id="@+id/textMemberName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                        android:textColor="@color/text_high_vibe"
+                        android:textStyle="bold"
+                        tools:text="Member Name" />
+
+                    <TextView
+                        android:id="@+id/textMemberEmail"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="@color/neon_blue"
+                        tools:text="member@teamflow.com" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Status & Stats Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:orientation="horizontal">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    style="@style/GlassCard">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="16dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="24"
+                            android:textColor="@color/neon_purple"
+                            android:textStyle="bold"
+                            android:textSize="20sp" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Tasks"
+                            android:textAppearance="?attr/textAppearanceLabelSmall"
+                            android:textColor="@color/text_mid_vibe" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    style="@style/GlassCard">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="16dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="85%"
+                            android:textColor="@color/neon_green"
+                            android:textStyle="bold"
+                            android:textSize="20sp" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Efficiency"
+                            android:textAppearance="?attr/textAppearanceLabelSmall"
+                            android:textColor="@color/text_mid_vibe" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+
+            <!-- Edit Details Section -->
+            <LinearLayout
+                android:id="@+id/layoutMyDetails"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="32dp"
+                    android:text="Edit Profile"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textColor="@color/text_high_vibe"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:hint="Full Name"
+                    app:boxStrokeColor="@color/neon_blue"
+                    app:hintTextColor="@color/neon_blue">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/inputName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textPersonName"
+                        android:textColor="@color/text_high_vibe" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:hint="Bio"
+                    app:boxStrokeColor="@color/neon_blue"
+                    app:hintTextColor="@color/neon_blue">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/inputBio"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/text_high_vibe" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:hint="Phone Number"
+                    app:boxStrokeColor="@color/neon_blue"
+                    app:hintTextColor="@color/neon_blue">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/inputPhone"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="phone"
+                        android:textColor="@color/text_high_vibe" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonSaveDetails"
+                    style="@style/NeonButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:layout_marginTop="24dp"
+                    android:text="Save Changes"
+                    android:backgroundTint="@color/neon_blue" />
+            </LinearLayout>
+
+            <!-- Viewing Others Section -->
+            <LinearLayout
+                android:id="@+id/layoutMemberDetails"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="32dp"
+                    style="@style/GlassCard">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="20dp"
+                        android:orientation="vertical">
+                        <TextView
+                            android:id="@+id/textBio"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="?attr/textAppearanceBodyLarge"
+                            android:textColor="@color/text_high_vibe"
+                            tools:text="User bio description goes here." />
+                        <TextView
+                            android:id="@+id/textPhone"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:textAppearance="?attr/textAppearanceBodyMedium"
+                            android:textColor="@color/neon_cyan"
+                            tools:text="+880 1234-5678" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+
+            <!-- Action Section -->
+            <TextView
+                android:id="@+id/labelActions"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:text="Actions"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="@color/text_high_vibe"
+                android:textStyle="bold" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonInviteToProject"
+                style="@style/NeonButton"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="16dp"
+                android:text="Invite to Project"
+                app:icon="@drawable/ic_add_24"
+                android:backgroundTint="@color/neon_purple" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonViewActiveTasks"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="12dp"
+                android:text="View Active Tasks"
+                app:icon="@drawable/ic_member_24"
+                android:textColor="@color/neon_blue"
+                app:strokeColor="@color/neon_blue"
+                app:cornerRadius="16dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonLogout"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="24dp"
+                android:text="Logout"
+                android:textColor="@color/neon_pink"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

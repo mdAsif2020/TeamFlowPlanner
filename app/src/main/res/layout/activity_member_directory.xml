@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/space_bg"
+    tools:context=".MemberDirectoryActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        app:elevation="0dp">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:navigationIconTint="@color/text_high_vibe"
+            app:title="" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Member Directory"
+                android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                android:textColor="@color/text_high_vibe"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="View all members in your team."
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/text_mid_vibe" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                style="@style/GlassCard">
+
+                <EditText
+                    android:id="@+id/editSearchNames"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/transparent"
+                    android:hint="Search for members..."
+                    android:padding="16dp"
+                    android:textColor="@color/text_high_vibe"
+                    android:textColorHint="@color/text_low_vibe"
+                    android:textSize="14sp"
+                    android:drawableStart="@drawable/ic_member_24"
+                    android:drawablePadding="12dp"
+                    app:drawableTint="@color/neon_cyan" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerNames"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:nestedScrollingEnabled="false"
+                tools:itemCount="5"
+                tools:listitem="@layout/item_simple_name" />
+
+            <TextView
+                android:id="@+id/textEmptyNames"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:gravity="center"
+                android:padding="64dp"
+                android:background="@drawable/glass_card_bg"
+                android:text="No members found."
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/text_mid_vibe"
+                android:visibility="gone" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

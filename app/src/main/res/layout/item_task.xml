@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardTask"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    android:clickable="true"
+    android:focusable="true"
+    style="@style/GlassCard">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <View
+            android:id="@+id/priorityIndicator"
+            android:layout_width="4dp"
+            android:layout_height="0dp"
+            android:background="@color/neon_purple"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/textTitle"
+            app:layout_constraintBottom_toBottomOf="@id/textDescription"/>
+
+        <TextView
+            android:id="@+id/textTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textColor="@color/text_high_vibe"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/chipStatus"
+            app:layout_constraintStart_toEndOf="@id/priorityIndicator"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Task Title" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipStatus"
+            style="@style/Widget.Material3.Chip.Assist"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/neon_cyan"
+            app:chipBackgroundColor="@color/space_bg"
+            app:chipStrokeColor="@color/neon_cyan"
+            app:chipStrokeWidth="1dp"
+            app:chipCornerRadius="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="To Do" />
+
+        <TextView
+            android:id="@+id/textDescription"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="@color/text_mid_vibe"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/textTitle"
+            app:layout_constraintTop_toBottomOf="@id/textTitle"
+            tools:text="Task description goes here." />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            app:layout_constraintStart_toStartOf="@id/textTitle"
+            app:layout_constraintTop_toBottomOf="@id/textDescription">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_member_24"
+                app:tint="@color/neon_blue" />
+
+            <TextView
+                android:id="@+id/textAssignee"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="@color/neon_blue"
+                android:textStyle="bold"
+                tools:text="ASSIGNEE" />
+
+            <TextView
+                android:id="@+id/textDeadline"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="@color/text_low_vibe"
+                tools:text="Deadline: Oct 25" />
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

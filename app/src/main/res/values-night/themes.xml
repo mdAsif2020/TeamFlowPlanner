@@ -1,0 +1,32 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Base.Theme.TeamFlowPlanner" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorOnPrimary">@color/on_primary</item>
+        <item name="colorPrimaryContainer">#1E293B</item>
+        <item name="colorSecondary">@color/status_in_progress</item>
+        <item name="colorSecondaryContainer">#334155</item>
+
+        <item name="android:statusBarColor">#0F172A</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowBackground">#0F172A</item>
+
+        <!-- Menu Styling -->
+        <item name="actionOverflowButtonStyle">@style/Widget.App.ActionButton.Overflow</item>
+        <item name="actionBarPopupTheme">@style/ThemeOverlay.App.PopupMenu</item>
+
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.App.SmallComponent</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.App.MediumComponent</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.App.LargeComponent</item>
+    </style>
+
+    <!-- Popup Menu Overrides for Night Mode -->
+    <style name="Widget.App.ActionButton.Overflow" parent="Widget.AppCompat.ActionButton.Overflow">
+        <item name="android:tint">@color/primary</item>
+    </style>
+
+    <style name="ThemeOverlay.App.PopupMenu" parent="ThemeOverlay.Material3.Dark">
+        <item name="colorSurface">#1E293B</item>
+        <item name="colorOnSurface">#F8FAFC</item>
+        <item name="android:textColorPrimary">#F8FAFC</item>
+    </style>
+</resources>

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardProject"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="16dp"
+    android:clickable="true"
+    android:focusable="true"
+    style="@style/GlassCard">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="20dp">
+
+        <View
+            android:id="@+id/statusIndicator"
+            android:layout_width="4dp"
+            android:layout_height="0dp"
+            android:background="@color/neon_blue"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/textTitle"
+            app:layout_constraintBottom_toBottomOf="@id/textSubtitle"/>
+
+        <TextView
+            android:id="@+id/textTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:textAppearance="?attr/textAppearanceTitleLarge"
+            android:textColor="@color/text_high_vibe"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/buttonMore"
+            app:layout_constraintStart_toEndOf="@id/statusIndicator"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Project Title" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonMore"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            app:icon="@drawable/ic_more_vert_24"
+            app:iconSize="20dp"
+            app:iconTint="@color/text_mid_vibe"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/textSubtitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="@color/text_mid_vibe"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/textTitle"
+            app:layout_constraintTop_toBottomOf="@id/textTitle"
+            tools:text="Project description goes here." />
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/progressProject"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            app:indicatorColor="@color/neon_blue"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/textTitle"
+            app:layout_constraintTop_toBottomOf="@id/textSubtitle"
+            app:trackColor="@color/space_stroke"
+            app:trackCornerRadius="4dp"
+            app:trackThickness="6dp"
+            android:progress="65" />
+
+        <TextView
+            android:id="@+id/textCounts"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:textAppearance="?attr/textAppearanceLabelMedium"
+            android:textColor="@color/neon_blue"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="@id/textTitle"
+            app:layout_constraintTop_toBottomOf="@id/progressProject"
+            tools:text="12 / 18 Tasks Completed" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipCompleted"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Completed"
+            android:textColor="@color/neon_green"
+            android:visibility="gone"
+            app:chipBackgroundColor="@color/space_glass"
+            app:chipStrokeColor="@color/neon_green"
+            app:layout_constraintBottom_toBottomOf="@id/textCounts"
+            app:layout_constraintStart_toEndOf="@id/textCounts"
+            app:layout_constraintTop_toTopOf="@id/textCounts"
+            tools:visibility="visible" />
+
+        <!-- Member list placeholder -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="@id/textCounts"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/textCounts">
+
+            <View
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:background="@drawable/circle_shape"
+                android:backgroundTint="@color/neon_purple"
+                android:layout_marginEnd="-8dp"/>
+            <View
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:background="@drawable/circle_shape"
+                android:backgroundTint="@color/neon_cyan"
+                android:layout_marginEnd="-8dp"/>
+            <View
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:background="@drawable/circle_shape"
+                android:backgroundTint="@color/neon_gold" />
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

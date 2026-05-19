@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardSimpleName"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    android:clickable="true"
+    android:focusable="true"
+    style="@style/GlassCard">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <!-- Futuristic Avatar with Pulse Ring -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/avatarContainer"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            app:cardCornerRadius="26dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/space_bg"
+            app:strokeWidth="1.5dp"
+            app:strokeColor="@color/neon_cyan"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+                <ImageView
+                    android:id="@+id/imageProfile"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone" />
+                <TextView
+                    android:id="@+id/textAvatarLetter"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:textAppearance="?attr/textAppearanceTitleLarge"
+                    android:textColor="@color/neon_cyan"
+                    android:textStyle="bold"
+                    tools:text="A" />
+            </FrameLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Presence Indicator -->
+        <View
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:background="@drawable/circle_shape"
+            android:backgroundTint="@color/neon_green"
+            app:layout_constraintBottom_toBottomOf="@id/avatarContainer"
+            app:layout_constraintEnd_toEndOf="@id/avatarContainer" />
+
+        <TextView
+            android:id="@+id/textName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="8dp"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textColor="@color/text_high_vibe"
+            android:textStyle="bold"
+            android:letterSpacing="0.02"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/iconArrow"
+            app:layout_constraintStart_toEndOf="@id/avatarContainer"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Modabbir Hossen" />
+
+        <ImageButton
+            android:id="@+id/iconArrow"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_more_vert_24"
+            app:tint="@color/text_mid_vibe"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:contentDescription="@string/content_description_more" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

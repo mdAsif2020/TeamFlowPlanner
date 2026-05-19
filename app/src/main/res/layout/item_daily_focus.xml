@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    android:clickable="true"
+    android:focusable="true"
+    style="@style/GlassCard">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <View
+            android:id="@+id/momentumIndicator"
+            android:layout_width="4dp"
+            android:layout_height="0dp"
+            android:background="@color/neon_cyan"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/textProject"
+            app:layout_constraintBottom_toBottomOf="@id/textTask"/>
+
+        <TextView
+            android:id="@+id/textProject"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:textAppearance="?attr/textAppearanceLabelSmall"
+            android:textColor="@color/neon_cyan"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@id/momentumIndicator"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="PROJECT ALPHA" />
+
+        <TextView
+            android:id="@+id/textTask"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textColor="@color/text_high_vibe"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/textProject"
+            app:layout_constraintTop_toBottomOf="@id/textProject"
+            tools:text="Update User Interface" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            gravity="center_vertical"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/textProject"
+            app:layout_constraintTop_toBottomOf="@id/textTask">
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:alpha="0.6"
+                android:src="@drawable/ic_member_24"
+                app:tint="@color/text_mid_vibe" />
+
+            <TextView
+                android:id="@+id/textMeta"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="@color/text_mid_vibe"
+                tools:text="Alex · 2 hours left" />
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

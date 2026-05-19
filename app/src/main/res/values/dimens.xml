@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="fab_margin">24dp</dimen>
+    <dimen name="card_corner">24dp</dimen>
+    <dimen name="card_elevation">8dp</dimen>
+    <dimen name="section_spacing">32dp</dimen>
+    <dimen name="card_stroke_width">1dp</dimen>
+    <dimen name="glass_corner">24dp</dimen>
+</resources>

@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/space_bg"
+    tools:context=".ProjectDetailActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        app:elevation="0dp">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:navigationIconTint="@color/text_high_vibe"
+            app:title="" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingBottom="88dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Project Hero Header -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="24dp"
+                android:paddingTop="12dp">
+
+                <TextView
+                    android:id="@+id/textProjectName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                    android:textColor="@color/text_high_vibe"
+                    android:textStyle="bold"
+                    tools:text="Project Name" />
+
+                <TextView
+                    android:id="@+id/textProjectDescription"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:textColor="@color/text_mid_vibe"
+                    tools:text="Project details and description will appear here." />
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="32dp"
+                    style="@style/GlassCard">
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="24dp">
+
+                        <com.google.android.material.progressindicator.CircularProgressIndicator
+                            android:id="@+id/progressProjectDetail"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            app:indicatorSize="80dp"
+                            app:trackThickness="8dp"
+                            app:indicatorColor="@color/neon_cyan"
+                            app:trackColor="@color/space_stroke"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            android:progress="65" />
+
+                        <TextView
+                            android:id="@+id/textProjectProgressPct"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="?attr/textAppearanceTitleMedium"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_high_vibe"
+                            app:layout_constraintStart_toStartOf="@id/progressProjectDetail"
+                            app:layout_constraintEnd_toEndOf="@id/progressProjectDetail"
+                            app:layout_constraintTop_toTopOf="@id/progressProjectDetail"
+                            app:layout_constraintBottom_toBottomOf="@id/progressProjectDetail"
+                            tools:text="65%" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:layout_marginStart="24dp"
+                            app:layout_constraintStart_toEndOf="@id/progressProjectDetail"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintBottom_toBottomOf="parent">
+
+                            <TextView
+                                android:id="@+id/textTaskStats"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="?attr/textAppearanceTitleLarge"
+                                android:textColor="@color/text_high_vibe"
+                                android:textStyle="bold"
+                                tools:text="12 / 18 Tasks" />
+
+                            <TextView
+                                android:id="@+id/textMemberCount"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:textAppearance="?attr/textAppearanceBodySmall"
+                                android:textColor="@color/text_mid_vibe"
+                                tools:text="Active Team: 5 members" />
+
+                        </LinearLayout>
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="24dp"
+                android:layout_marginTop="24dp"
+                android:hint="Filter by Assignee"
+                app:boxStrokeColor="@color/neon_blue"
+                app:hintTextColor="@color/neon_blue">
+
+                <AutoCompleteTextView
+                    android:id="@+id/dropdownAssigneeFilter"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none"
+                    android:textColor="@color/text_high_vibe" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Status Filter -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="24dp"
+                android:layout_marginTop="16dp"
+                android:scrollbars="none">
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chipGroupStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:singleSelection="true"
+                    app:selectionRequired="true"
+                    app:chipSpacingHorizontal="12dp">
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipFilterAll"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:text="All"
+                        android:textColor="@color/text_high_vibe"
+                        app:chipBackgroundColor="@color/space_glass"
+                        app:chipStrokeColor="@color/neon_blue" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipFilterPending"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="To Do"
+                        android:textColor="@color/text_mid_vibe"
+                        app:chipBackgroundColor="@color/space_card"
+                        app:chipStrokeColor="@color/space_stroke" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipFilterProgress"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="In Progress"
+                        android:textColor="@color/text_mid_vibe"
+                        app:chipBackgroundColor="@color/space_card"
+                        app:chipStrokeColor="@color/space_stroke" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipFilterDone"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Completed"
+                        android:textColor="@color/text_mid_vibe"
+                        app:chipBackgroundColor="@color/space_card"
+                        app:chipStrokeColor="@color/space_stroke" />
+
+                </com.google.android.material.chip.ChipGroup>
+            </HorizontalScrollView>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerTasks"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:clipToPadding="false"
+                android:paddingHorizontal="24dp"
+                android:paddingBottom="24dp"
+                android:nestedScrollingEnabled="false"
+                tools:listitem="@layout/item_task" />
+
+            <TextView
+                android:id="@+id/textEmptyTasks"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="24dp"
+                android:gravity="center"
+                android:padding="64dp"
+                android:background="@drawable/glass_card_bg"
+                android:text="No tasks yet."
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/text_mid_vibe"
+                android:visibility="gone" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAddTask"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="24dp"
+        app:srcCompat="@drawable/ic_add_24"
+        app:tint="@color/text_high_vibe"
+        app:backgroundTint="@color/neon_purple"
+        app:elevation="8dp" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

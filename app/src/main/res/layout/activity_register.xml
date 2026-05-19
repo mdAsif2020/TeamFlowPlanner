@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/space_bg">
+
+    <!-- Decorative Glows -->
+    <View
+        android:layout_width="350dp"
+        android:layout_height="350dp"
+        android:background="@drawable/circle_shape"
+        android:backgroundTint="@color/neon_purple"
+        android:alpha="0.1"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="-150dp"
+        android:layout_marginEnd="-150dp" />
+
+    <View
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:background="@drawable/circle_shape"
+        android:backgroundTint="@color/neon_cyan"
+        android:alpha="0.1"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginBottom="-50dp"
+        android:layout_marginStart="-50dp" />
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="32dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/create_account_title"
+                android:textAppearance="?attr/textAppearanceHeadlineLarge"
+                android:textStyle="bold"
+                android:textColor="@color/text_high_vibe"
+                android:letterSpacing="0.02" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Join your team and start collaborating"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/text_mid_vibe"
+                android:layout_marginTop="8dp"
+                android:gravity="center" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="40dp"
+                style="@style/GlassCard">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="24dp">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/full_name_hint"
+                        app:boxStrokeColor="@color/neon_blue"
+                        app:hintTextColor="@color/neon_blue"
+                        android:textColorHint="@color/text_low_vibe">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/inputName"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textPersonName"
+                            android:textColor="@color/text_high_vibe" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:hint="@string/email_hint"
+                        app:boxStrokeColor="@color/neon_blue"
+                        app:hintTextColor="@color/neon_blue"
+                        android:textColorHint="@color/text_low_vibe">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/inputEmail"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textEmailAddress"
+                            android:textColor="@color/text_high_vibe" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:hint="@string/password_hint"
+                        app:boxStrokeColor="@color/neon_blue"
+                        app:hintTextColor="@color/neon_blue"
+                        android:textColorHint="@color/text_low_vibe"
+                        app:passwordToggleEnabled="true"
+                        app:passwordToggleTint="@color/text_mid_vibe">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/inputPassword"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textPassword"
+                            android:textColor="@color/text_high_vibe" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonRegister"
+                style="@style/NeonButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:text="@string/register_button"
+                android:backgroundTint="@color/neon_purple" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonToLogin"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/already_have_account_login"
+                android:textColor="@color/neon_cyan" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
