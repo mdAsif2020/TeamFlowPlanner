@@ -48,13 +48,13 @@ public class MemberDirectoryActivity extends AppCompatActivity {
 
         adapter = new SimpleNameAdapter(new SimpleNameAdapter.Listener() {
             @Override
-            public void onNameClick(@NonNull String name) {
-                openProfile(name);
+            public void onNameClick(@NonNull SupabaseService.Profile profile) {
+                openProfile(profile);
             }
 
             @Override
-            public void onMoreClick(@NonNull View anchor, @NonNull String name) {
-                showPopupMenu(anchor, name);
+            public void onMoreClick(@NonNull View anchor, @NonNull SupabaseService.Profile profile) {
+                showPopupMenu(anchor, profile);
             }
         });
         binding.recyclerNames.setLayoutManager(new LinearLayoutManager(this));
@@ -78,32 +78,43 @@ public class MemberDirectoryActivity extends AppCompatActivity {
     }
 
     private void searchUsers(String query) {
+        String currentEmail = new SessionManager(this).getUserEmail();
         SupabaseService.searchProfiles(query, new SupabaseCallback<List<SupabaseService.Profile>>() {
             @Override
             public void onSuccess(List<SupabaseService.Profile> profiles) {
+                // Filter out current user from directory
+                List<SupabaseService.Profile> filtered = new ArrayList<>();
+                for (SupabaseService.Profile p : profiles) {
+                    if (p.getEmail() != null && !p.getEmail().equalsIgnoreCase(currentEmail)) {
+                        filtered.add(p);
+                    }
+                }
                 runOnUiThread(() -> {
-                    adapter.submitList(profiles);
-                    binding.textEmptyNames.setVisibility(profiles.isEmpty() ? View.VISIBLE : View.GONE);
+                    adapter.submitList(filtered);
+                    binding.textEmptyNames.setVisibility(filtered.isEmpty() ? View.VISIBLE : View.GONE);
                 });
             }
 
             @Override
             public void onError(Throwable error) {
-                runOnUiThread(() -> Toast.makeText(MemberDirectoryActivity.this, "Search failed", Toast.LENGTH_SHORT).show());
+                runOnUiThread(() -> {
+                    Toast.makeText(MemberDirectoryActivity.this, "Search failed: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                    binding.textEmptyNames.setVisibility(View.VISIBLE);
+                });
             }
         });
     }
 
-    private void showPopupMenu(View anchor, String name) {
+    private void showPopupMenu(View anchor, SupabaseService.Profile profile) {
         PopupMenu popup = new PopupMenu(this, anchor);
         popup.getMenuInflater().inflate(R.menu.menu_member_options, popup.getMenu());
         popup.setOnMenuItemClickListener(item -> {
             int id = item.getItemId();
             if (id == R.id.action_view_profile) {
-                openProfile(name);
+                openProfile(profile);
                 return true;
             } else if (id == R.id.action_delete) {
-                confirmDelete(name);
+                confirmDelete(profile.getName());
                 return true;
             }
             return false;
@@ -111,9 +122,11 @@ public class MemberDirectoryActivity extends AppCompatActivity {
         popup.show();
     }
 
-    private void openProfile(String name) {
+    private void openProfile(SupabaseService.Profile profile) {
         Intent i = new Intent(this, MemberProfileActivity.class);
-        i.putExtra(MemberProfileActivity.EXTRA_MEMBER_NAME, name);
+        i.putExtra(MemberProfileActivity.EXTRA_MEMBER_NAME, profile.getName());
+        i.putExtra(MemberProfileActivity.EXTRA_MEMBER_EMAIL, profile.getEmail());
+        i.putExtra(MemberProfileActivity.EXTRA_MEMBER_USERNAME, profile.getUsername());
         startActivity(i);
     }
 

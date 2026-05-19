@@ -62,50 +62,12 @@ public class ChatActivity extends AppCompatActivity {
         binding.recyclerChat.setLayoutManager(layoutManager);
         binding.recyclerChat.setAdapter(adapter);
 
-        loadMessages();
         startRealtime();
 
         binding.buttonSend.setOnClickListener(v -> {
             String text = binding.inputMessage.getText().toString().trim();
             if (!text.isEmpty()) {
                 sendMessage(text);
-            }
-        });
-    }
-
-    private void loadMessages() {
-        long pid;
-        try {
-            pid = Long.parseLong(projectId);
-        } catch (NumberFormatException nfe) {
-            runOnUiThread(() -> Toast.makeText(this, "Invalid project id", Toast.LENGTH_SHORT).show());
-            return;
-        }
-
-        SupabaseService.fetchMessages(pid, new SupabaseCallback<>() {
-            @Override
-            public void onSuccess(List<SupabaseService.MessageRow> rows) {
-                List<ChatMessage> msgs = new ArrayList<>();
-                for (SupabaseService.MessageRow r : rows) {
-                    ChatMessage m = new ChatMessage();
-                    m.senderName = r.getSender_name();
-                    m.senderEmail = r.getSender_email();
-                    m.message = r.getMessage();
-                    Long ts = r.getTimestamp();
-                    m.timestamp = ts == null ? System.currentTimeMillis() : ts;
-                    msgs.add(m);
-                }
-                runOnUiThread(() -> {
-                    adapter.setMessages(msgs);
-                    if (!msgs.isEmpty()) {
-                        binding.recyclerChat.smoothScrollToPosition(msgs.size() - 1);
-                    }
-                });
-            }
-
-            @Override
-            public void onError(Throwable error) {
-                runOnUiThread(() -> Toast.makeText(ChatActivity.this, "Error loading messages: " + error.getMessage(), Toast.LENGTH_SHORT).show());
             }
         });
     }

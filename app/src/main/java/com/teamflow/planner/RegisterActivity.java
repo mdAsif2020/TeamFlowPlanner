@@ -25,28 +25,30 @@ public class RegisterActivity extends AppCompatActivity {
 
         binding.buttonRegister.setOnClickListener(v -> {
             String name = binding.inputName.getText().toString().trim();
+            String username = binding.inputUsername.getText().toString().trim();
             String email = binding.inputEmail.getText().toString().trim();
             String password = binding.inputPassword.getText().toString().trim();
 
-            if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
+            if (name.isEmpty() || username.isEmpty() || email.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "Fill all fields", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             java.util.HashMap<String, Object> metadata = new java.util.HashMap<>();
             metadata.put("name", name);
-            SupabaseService.signUp(email, password, metadata, new SupabaseCallback<>() {
+            metadata.put("username", username);
+            SupabaseService.signUp(email, password, metadata, new SupabaseCallback<String>() {
                 @Override
                 public void onSuccess(String userId) {
                     // Create initial profile record
                     SupabaseService.Profile initialProfile = new SupabaseService.Profile(
-                            userId, name, email, null, null, null
+                            userId, name, username, email, null, null, null
                     );
                     SupabaseService.updateProfile(initialProfile, new SupabaseCallback<>() {
                         @Override
                         public void onSuccess(Void result) {
                             runOnUiThread(() -> {
-                                sessionManager.createSession(userId, name, email);
+                                sessionManager.createSession(userId, name, username, email, null);
                                 Toast.makeText(RegisterActivity.this, "Registration Successful", Toast.LENGTH_SHORT).show();
                                 startActivity(new Intent(RegisterActivity.this, DashboardActivity.class));
                                 finish();
@@ -57,7 +59,7 @@ public class RegisterActivity extends AppCompatActivity {
                         public void onError(Throwable error) {
                             // Even if profile creation fails, the user is created in Auth
                             runOnUiThread(() -> {
-                                sessionManager.createSession(userId, name, email);
+                                sessionManager.createSession(userId, name, username, email, null);
                                 startActivity(new Intent(RegisterActivity.this, DashboardActivity.class));
                                 finish();
                             });

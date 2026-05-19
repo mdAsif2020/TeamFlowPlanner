@@ -36,6 +36,9 @@ public interface TaskDao {
     @Query("SELECT * FROM tasks WHERE id = :id LIMIT 1")
     Task getTaskById(long id);
 
+    @Query("SELECT * FROM tasks WHERE remoteId = :remoteId LIMIT 1")
+    Task getTaskByRemoteIdSync(long remoteId);
+
     @Query("SELECT tasks.*, p.name AS projectName FROM tasks INNER JOIN projects p ON p.id = tasks.projectId "
             + "WHERE LOWER(tasks.assignee) = LOWER(:assignee) ORDER BY (tasks.deadline IS NULL), tasks.deadline ASC")
     LiveData<List<TaskWithProject>> observeTasksForAssignee(String assignee);

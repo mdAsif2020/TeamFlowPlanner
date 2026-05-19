@@ -37,6 +37,9 @@ public interface ProjectDao {
     @Query("SELECT * FROM projects WHERE id = :id LIMIT 1")
     Project getProjectById(long id);
 
+    @Query("SELECT * FROM projects WHERE remoteId = :remoteId LIMIT 1")
+    Project getProjectByRemoteIdSync(long remoteId);
+
     @Query("SELECT * FROM projects WHERE id = :id LIMIT 1")
     LiveData<Project> observeProject(long id);
 

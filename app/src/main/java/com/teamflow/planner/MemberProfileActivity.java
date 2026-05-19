@@ -24,10 +24,14 @@ import java.util.Map;
 public class MemberProfileActivity extends AppCompatActivity {
 
     public static final String EXTRA_MEMBER_NAME = "extra_member_name";
+    public static final String EXTRA_MEMBER_EMAIL = "extra_member_email";
+    public static final String EXTRA_MEMBER_USERNAME = "extra_member_username";
 
     private ActivityMemberProfileBinding binding;
     private SessionManager sessionManager;
     private String memberName;
+    private String memberEmail;
+    private String memberUsername;
     private Uri selectedImageUri;
 
     private final ActivityResultLauncher<Intent> pickImageLauncher = registerForActivityResult(
@@ -47,6 +51,9 @@ public class MemberProfileActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         memberName = getIntent().getStringExtra(EXTRA_MEMBER_NAME);
+        memberEmail = getIntent().getStringExtra(EXTRA_MEMBER_EMAIL);
+        memberUsername = getIntent().getStringExtra(EXTRA_MEMBER_USERNAME);
+        
         if (memberName == null || memberName.isEmpty()) {
             finish();
             return;
@@ -54,7 +61,9 @@ public class MemberProfileActivity extends AppCompatActivity {
 
         sessionManager = new SessionManager(this);
 
-        boolean isMyProfile = memberName.equals(sessionManager.getUserName());
+        boolean isMyProfile = (memberEmail != null && memberEmail.equalsIgnoreCase(sessionManager.getUserEmail())) ||
+                             (memberUsername != null && memberUsername.equalsIgnoreCase(sessionManager.getUserUsername())) ||
+                             (memberName != null && memberName.equalsIgnoreCase(sessionManager.getUserName()));
 
         setSupportActionBar(binding.toolbar);
         if (getSupportActionBar() != null) {
@@ -74,6 +83,8 @@ public class MemberProfileActivity extends AppCompatActivity {
             setupOtherMemberProfile();
         }
 
+        binding.buttonRemovePhoto.setOnClickListener(v -> removeProfileImage());
+
         binding.buttonViewActiveTasks.setOnClickListener(v -> {
             Intent i = new Intent(this, MemberTasksActivity.class);
             i.putExtra(MemberTasksActivity.EXTRA_ASSIGNEE_NAME, memberName);
@@ -91,6 +102,7 @@ public class MemberProfileActivity extends AppCompatActivity {
 
         binding.buttonSaveDetails.setOnClickListener(v -> {
             String name = binding.inputName.getText().toString().trim();
+            String username = binding.inputUsername.getText().toString().trim();
             String bio = binding.inputBio.getText().toString().trim();
             String phone = binding.inputPhone.getText().toString().trim();
 
@@ -102,6 +114,7 @@ public class MemberProfileActivity extends AppCompatActivity {
             SupabaseService.Profile updatedProfile = new SupabaseService.Profile(
                     sessionManager.getUserId(),
                     name,
+                    username,
                     sessionManager.getUserEmail(),
                     bio,
                     phone,
@@ -186,6 +199,7 @@ public class MemberProfileActivity extends AppCompatActivity {
                 project.id,
                 project.name,
                 sessionManager.getUserEmail(),
+                sessionManager.getUserUsername(),
                 targetMemberEmail,
                 "PENDING"
         );
@@ -204,7 +218,9 @@ public class MemberProfileActivity extends AppCompatActivity {
     }
 
     private void loadProfileData() {
-        boolean isMyProfile = memberName.equals(sessionManager.getUserName());
+        boolean isMyProfile = (memberEmail != null && memberEmail.equalsIgnoreCase(sessionManager.getUserEmail())) ||
+                             (memberUsername != null && memberUsername.equalsIgnoreCase(sessionManager.getUserUsername())) ||
+                             (memberName != null && memberName.equalsIgnoreCase(sessionManager.getUserName()));
         
         SupabaseCallback<SupabaseService.Profile> callback = new SupabaseCallback<>() {
             @Override
@@ -216,6 +232,10 @@ public class MemberProfileActivity extends AppCompatActivity {
                     if (profile.getName() != null) {
                         binding.textMemberName.setText(profile.getName());
                         binding.inputName.setText(profile.getName());
+                    }
+                    if (profile.getUsername() != null) {
+                        binding.textMemberUsername.setText("@" + profile.getUsername());
+                        binding.inputUsername.setText(profile.getUsername());
                     }
                     if (profile.getBio() != null) {
                         binding.textBio.setText(profile.getBio());
@@ -240,6 +260,10 @@ public class MemberProfileActivity extends AppCompatActivity {
 
         if (isMyProfile) {
             SupabaseService.fetchProfileById(sessionManager.getUserId(), callback);
+        } else if (memberEmail != null) {
+            SupabaseService.fetchProfileByEmail(memberEmail, callback);
+        } else if (memberUsername != null) {
+            SupabaseService.fetchProfileByUsername(memberUsername, callback);
         } else {
             SupabaseService.fetchProfile(memberName, callback);
         }
@@ -252,6 +276,7 @@ public class MemberProfileActivity extends AppCompatActivity {
         String bio = binding.inputBio.getText().toString().trim();
         String phone = binding.inputPhone.getText().toString().trim();
         String name = binding.inputName.getText().toString().trim();
+        String username = binding.inputUsername.getText().toString().trim();
         String userId = sessionManager.getUserId();
         String email = sessionManager.getUserEmail();
 
@@ -279,7 +304,7 @@ public class MemberProfileActivity extends AppCompatActivity {
                     public void onSuccess(String url) {
                         // Use captured values to avoid accessing UI from background thread
                         SupabaseService.Profile update = new SupabaseService.Profile(
-                                userId, name, email, bio, phone, url
+                                userId, name, username, email, bio, phone, url
                         );
                         
                         SupabaseService.updateProfile(update, new SupabaseCallback<Void>() {
@@ -312,12 +337,55 @@ public class MemberProfileActivity extends AppCompatActivity {
         }).start();
     }
 
+    private void removeProfileImage() {
+        String userId = sessionManager.getUserId();
+        if (userId == null) return;
+
+        String name = binding.inputName.getText().toString().trim();
+        String username = binding.inputUsername.getText().toString().trim();
+        String bio = binding.inputBio.getText().toString().trim();
+        String phone = binding.inputPhone.getText().toString().trim();
+        String email = sessionManager.getUserEmail();
+
+        SupabaseService.Profile update = new SupabaseService.Profile(
+                userId, name, username, email, bio, phone, null
+        );
+
+        SupabaseService.updateProfile(update, new SupabaseCallback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                runOnUiThread(() -> {
+                    sessionManager.updateUserPhotoUrl(null);
+                    binding.imageProfile.setVisibility(View.GONE);
+                    binding.textAvatarLetter.setVisibility(View.VISIBLE);
+                    binding.buttonRemovePhoto.setVisibility(View.GONE);
+                    Toast.makeText(MemberProfileActivity.this, "Photo removed", Toast.LENGTH_SHORT).show();
+                });
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                runOnUiThread(() -> Toast.makeText(MemberProfileActivity.this, "Failed to remove photo", Toast.LENGTH_SHORT).show());
+            }
+        });
+    }
+
     private void loadProfileImage(String url) {
         loadProfileImage(url, false);
     }
 
     private void loadProfileImage(String url, boolean forceRefresh) {
-        if (url == null || url.isEmpty()) return;
+        if (url == null || url.isEmpty()) {
+            binding.imageProfile.setVisibility(View.GONE);
+            binding.textAvatarLetter.setVisibility(View.VISIBLE);
+            binding.buttonRemovePhoto.setVisibility(View.GONE);
+            return;
+        }
+
+        boolean isMyProfile = memberName.equals(sessionManager.getUserName());
+        if (isMyProfile) {
+            binding.buttonRemovePhoto.setVisibility(View.VISIBLE);
+        }
 
         binding.textAvatarLetter.setVisibility(View.GONE);
         binding.imageProfile.setVisibility(View.VISIBLE);

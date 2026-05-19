@@ -94,12 +94,13 @@ public class InvitationsActivity extends AppCompatActivity {
                             p.createdAt = pSync.getCreated_at();
                             p.lastModified = System.currentTimeMillis();
                             
-                            long projectId = db.projectDao().insert(p);
+                            p.id = db.projectDao().insert(p);
 
                             // Add current user as a team member of this project locally
                             TeamMember member = new TeamMember();
-                            member.projectId = projectId;
+                            member.projectId = p.id;
                             member.name = sessionManager.getUserName();
+                            member.username = sessionManager.getUserUsername();
                             member.createdAt = System.currentTimeMillis();
                             db.teamMemberDao().insert(member);
 
@@ -108,7 +109,8 @@ public class InvitationsActivity extends AppCompatActivity {
                                     null,
                                     p.remoteId,
                                     sessionManager.getUserEmail(),
-                                    sessionManager.getUserName()
+                                    sessionManager.getUserName(),
+                                    sessionManager.getUserUsername()
                             );
                             SupabaseService.addProjectMember(memberSync, new SupabaseCallback<Void>() {
                                 @Override

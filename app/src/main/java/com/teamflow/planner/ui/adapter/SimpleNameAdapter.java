@@ -20,8 +20,8 @@ import java.util.List;
 public class SimpleNameAdapter extends RecyclerView.Adapter<SimpleNameAdapter.VH> {
 
     public interface Listener {
-        void onNameClick(@NonNull String name);
-        void onMoreClick(@NonNull View anchor, @NonNull String name);
+        void onNameClick(@NonNull SupabaseService.Profile profile);
+        void onMoreClick(@NonNull View anchor, @NonNull SupabaseService.Profile profile);
     }
 
     private final Listener listener;
@@ -66,6 +66,14 @@ public class SimpleNameAdapter extends RecyclerView.Adapter<SimpleNameAdapter.VH
         void bind(SupabaseService.Profile profile) {
             String name = profile.getName();
             binding.textName.setText(name);
+
+            String username = profile.getUsername();
+            if (username != null && !username.isEmpty()) {
+                binding.textUsername.setVisibility(View.VISIBLE);
+                binding.textUsername.setText("@" + username);
+            } else {
+                binding.textUsername.setVisibility(View.GONE);
+            }
             
             // Modern Avatar Logic: Show image if available, else first letter
             String photoUrl = profile.getPhoto_url();
@@ -86,8 +94,8 @@ public class SimpleNameAdapter extends RecyclerView.Adapter<SimpleNameAdapter.VH
                 }
             }
 
-            binding.getRoot().setOnClickListener(v -> listener.onNameClick(name));
-            binding.iconArrow.setOnClickListener(v -> listener.onMoreClick(v, name));
+            binding.getRoot().setOnClickListener(v -> listener.onNameClick(profile));
+            binding.iconArrow.setOnClickListener(v -> listener.onMoreClick(v, profile));
         }
     }
 }

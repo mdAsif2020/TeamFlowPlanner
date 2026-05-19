@@ -11,11 +11,13 @@ import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import com.teamflow.planner.data.dao.InvitationDao;
+import com.teamflow.planner.data.dao.NotificationDao;
 import com.teamflow.planner.data.dao.ProjectDao;
 import com.teamflow.planner.data.dao.TaskDao;
 import com.teamflow.planner.data.dao.TeamMemberDao;
 import com.teamflow.planner.data.dao.UserDao;
 import com.teamflow.planner.data.entity.Invitation;
+import com.teamflow.planner.data.entity.Notification;
 import com.teamflow.planner.data.entity.Project;
 import com.teamflow.planner.data.entity.Task;
 import com.teamflow.planner.data.entity.TeamMember;
@@ -25,8 +27,8 @@ import com.teamflow.planner.data.entity.User;
  * Single Room database for offline storage.
  */
 @Database(
-        entities = {Project.class, Task.class, TeamMember.class, User.class, Invitation.class},
-        version = 8,
+        entities = {Project.class, Task.class, TeamMember.class, User.class, Invitation.class, Notification.class},
+        version = 10,
         exportSchema = false
 )
 @TypeConverters({Converters.class})
@@ -93,6 +95,8 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract UserDao userDao();
 
     public abstract InvitationDao invitationDao();
+
+    public abstract NotificationDao notificationDao();
 
     public static AppDatabase getInstance(Context context) {
         if (INSTANCE == null) {

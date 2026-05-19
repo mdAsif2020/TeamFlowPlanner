@@ -2,10 +2,16 @@ package com.teamflow.planner;
 
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.textfield.TextInputLayout;
 import com.teamflow.planner.data.AppDatabase;
 import com.teamflow.planner.data.entity.Project;
 import com.teamflow.planner.databinding.ActivityAddProjectBinding;
@@ -13,6 +19,7 @@ import com.teamflow.planner.supabase.SupabaseCallback;
 import com.teamflow.planner.supabase.SupabaseService;
 import com.teamflow.planner.util.EntityTimestamps;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -104,8 +111,134 @@ public class AddProjectActivity extends AppCompatActivity {
                 long localId = db.projectDao().insert(p);
                 p.id = localId;
                 syncProjectToSupabase(p);
+                runOnUiThread(() -> showInviteOptionDialog(p));
             }
-            runOnUiThread(this::finish);
+        });
+    }
+
+    private void showInviteOptionDialog(Project project) {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Project Created")
+                .setMessage("Your project '" + project.name + "' has been created. Would you like to invite team members now?")
+                .setPositiveButton("Invite Members", (dialog, which) -> showAddMemberDialog(project))
+                .setNegativeButton("Maybe Later", (dialog, which) -> finish())
+                .setCancelable(false)
+                .show();
+    }
+
+    private void showAddMemberDialog(Project project) {
+        TextInputLayout textInputLayout = new TextInputLayout(this, null, com.google.android.material.R.style.Widget_Material3_TextInputLayout_OutlinedBox_ExposedDropdownMenu);
+        textInputLayout.setHint("Username or Email");
+        textInputLayout.setBoxCornerRadii(48f, 48f, 48f, 48f);
+
+        AutoCompleteTextView input = new AutoCompleteTextView(textInputLayout.getContext());
+        input.setSingleLine(true);
+        input.setThreshold(1);
+
+        textInputLayout.addView(input);
+
+        FrameLayout container = new FrameLayout(this);
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        int margin = (int) (24 * getResources().getDisplayMetrics().density);
+        params.setMargins(margin, (int) (8 * getResources().getDisplayMetrics().density), margin, 0);
+        container.setLayoutParams(params);
+        container.addView(textInputLayout);
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Invite Team Member")
+                .setView(container)
+                .setPositiveButton("Search", (d, w) -> {
+                    String query = input.getText().toString().trim();
+                    if (TextUtils.isEmpty(query)) {
+                        Toast.makeText(this, "Please enter a username or email", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    searchAndInvite(project, query);
+                })
+                .setNegativeButton("Done", (d, w) -> finish())
+                .setCancelable(false)
+                .show();
+    }
+
+    private void searchAndInvite(Project project, String query) {
+        SupabaseService.searchProfiles(query, new SupabaseCallback<List<SupabaseService.Profile>>() {
+            @Override
+            public void onSuccess(List<SupabaseService.Profile> results) {
+                if (results == null || results.isEmpty()) {
+                    runOnUiThread(() -> {
+                        Toast.makeText(AddProjectActivity.this, "User not found", Toast.LENGTH_SHORT).show();
+                        showAddMemberDialog(project); // Show dialog again
+                    });
+                    return;
+                }
+
+                SupabaseService.Profile target = results.get(0);
+                for (SupabaseService.Profile p : results) {
+                    if (query.equalsIgnoreCase(p.getUsername()) || query.equalsIgnoreCase(p.getEmail())) {
+                        target = p;
+                        break;
+                    }
+                }
+
+                SupabaseService.Profile finalTarget = target;
+                runOnUiThread(() -> {
+                    new MaterialAlertDialogBuilder(AddProjectActivity.this)
+                            .setTitle("Send Invitation")
+                            .setMessage("Invite " + finalTarget.getName() + " (@" + finalTarget.getUsername() + ") to '" + project.name + "'?")
+                            .setPositiveButton("Send", (d, w) -> sendActualInvitation(project, finalTarget))
+                            .setNegativeButton("Back", (d, w) -> showAddMemberDialog(project))
+                            .show();
+                });
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                runOnUiThread(() -> {
+                    Toast.makeText(AddProjectActivity.this, "Search failed: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                    showAddMemberDialog(project);
+                });
+            }
+        });
+    }
+
+    private void sendActualInvitation(Project project, SupabaseService.Profile target) {
+        io.execute(() -> {
+            if (project.remoteId == null) {
+                runOnUiThread(() -> {
+                    Toast.makeText(AddProjectActivity.this, "Project sync in progress, please wait...", Toast.LENGTH_SHORT).show();
+                    // Retry after a short delay if needed, or just ask them to wait
+                    showAddMemberDialog(project);
+                });
+                return;
+            }
+
+            SupabaseService.Invitation inv = new SupabaseService.Invitation(
+                    null,
+                    project.remoteId,
+                    project.name,
+                    sessionManager.getUserEmail(),
+                    sessionManager.getUserUsername(),
+                    target.getEmail(),
+                    "PENDING"
+            );
+
+            SupabaseService.sendInvitation(inv, new SupabaseCallback<Void>() {
+                @Override
+                public void onSuccess(Void result) {
+                    runOnUiThread(() -> {
+                        Toast.makeText(AddProjectActivity.this, "Invitation sent to " + target.getUsername(), Toast.LENGTH_SHORT).show();
+                        showAddMemberDialog(project); // Allow inviting more
+                    });
+                }
+
+                @Override
+                public void onError(Throwable error) {
+                    runOnUiThread(() -> {
+                        Toast.makeText(AddProjectActivity.this, "Failed to send invitation", Toast.LENGTH_SHORT).show();
+                        showAddMemberDialog(project);
+                    });
+                }
+            });
         });
     }
 
@@ -127,7 +260,9 @@ public class AddProjectActivity extends AppCompatActivity {
 
             @Override
             public void onError(Throwable error) {
-                // Ignore sync errors for now, will retry later or manual sync
+                runOnUiThread(() -> {
+                    Toast.makeText(AddProjectActivity.this, "Sync failed: " + error.getMessage(), Toast.LENGTH_LONG).show();
+                });
             }
         });
     }

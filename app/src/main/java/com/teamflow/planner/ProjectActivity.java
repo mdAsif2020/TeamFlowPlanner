@@ -8,6 +8,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -18,11 +19,14 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.teamflow.planner.data.AppDatabase;
+import com.teamflow.planner.data.TaskPriority;
 import com.teamflow.planner.data.TaskStatus;
 import com.teamflow.planner.data.entity.Project;
 import com.teamflow.planner.data.entity.Task;
 import com.teamflow.planner.data.entity.TeamMember;
 import com.teamflow.planner.databinding.ActivityProjectDetailBinding;
+import com.teamflow.planner.supabase.SupabaseCallback;
+import com.teamflow.planner.supabase.SupabaseService;
 import com.teamflow.planner.ui.TaskSwipeCallback;
 import com.teamflow.planner.ui.adapter.TaskAdapter;
 
@@ -159,7 +163,45 @@ public class ProjectActivity extends AppCompatActivity {
             binding.textMemberCount.setText(String.format(Locale.getDefault(), "%d Team Members", lastMembers.size()));
             rebuildAssigneeDropdown();
         });
+
+        startTaskRealtimeListener();
     }
+
+    private void startTaskRealtimeListener() {
+        io.execute(() -> {
+            Project p = db.projectDao().getProjectById(projectId);
+            if (p == null || p.remoteId == null) return;
+
+            SupabaseService.observeTasks(p.remoteId, new SupabaseCallback<List<SupabaseService.TaskSync>>() {
+                @Override
+                public void onSuccess(List<SupabaseService.TaskSync> tasks) {
+                    io.execute(() -> {
+                        for (SupabaseService.TaskSync ts : tasks) {
+                            Task existing = db.taskDao().getTaskByRemoteIdSync(ts.getId());
+                            if (existing == null) {
+                                existing = new Task();
+                                existing.remoteId = ts.getId();
+                                existing.projectId = projectId;
+                            }
+                            existing.title = ts.getTitle();
+                            existing.description = ts.getDescription();
+                            existing.assignee = ts.getAssignee();
+                            existing.status = TaskStatus.valueOf(ts.getStatus());
+                            existing.priority = TaskPriority.valueOf(ts.getPriority());
+                            existing.deadline = ts.getDeadline();
+                            existing.lastModified = ts.getUpdated_at() != null ? ts.getUpdated_at() : System.currentTimeMillis();
+                            db.taskDao().insertOrReplace(existing);
+                        }
+                    });
+                }
+
+                @Override
+                public void onError(Throwable error) {
+                }
+            });
+        });
+    }
+
 
     private void updateProgress() {
         int total = lastSnapshot.size();
@@ -218,11 +260,13 @@ public class ProjectActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_chat) {
-            if (currentProject != null) {
+            if (currentProject != null && currentProject.remoteId != null) {
                 Intent i = new Intent(this, ChatActivity.class);
-                i.putExtra(ChatActivity.EXTRA_PROJECT_ID, projectId);
+                i.putExtra(ChatActivity.EXTRA_PROJECT_ID, (long) currentProject.remoteId);
                 i.putExtra(ChatActivity.EXTRA_OWNER_EMAIL, currentProject.ownerEmail);
                 startActivity(i);
+            } else {
+                Toast.makeText(this, "Project not synced to cloud yet", Toast.LENGTH_SHORT).show();
             }
             return true;
         }
@@ -233,6 +277,12 @@ public class ProjectActivity extends AppCompatActivity {
             return true;
         }
         if (id == R.id.action_team_members) {
+            Intent i = new Intent(this, TeamMembersActivity.class);
+            i.putExtra(TeamMembersActivity.EXTRA_PROJECT_ID, projectId);
+            startActivity(i);
+            return true;
+        }
+        if (id == R.id.action_invite_member) {
             Intent i = new Intent(this, TeamMembersActivity.class);
             i.putExtra(TeamMembersActivity.EXTRA_PROJECT_ID, projectId);
             startActivity(i);

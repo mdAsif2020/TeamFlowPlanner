@@ -48,8 +48,9 @@ public class LoginActivity extends AppCompatActivity {
                         public void onSuccess(SupabaseService.Profile profile) {
                             runOnUiThread(() -> {
                                 String name = (profile != null && profile.getName() != null) ? profile.getName() : "User";
+                                String username = (profile != null) ? profile.getUsername() : null;
                                 String photoUrl = (profile != null) ? profile.getPhoto_url() : null;
-                                sessionManager.createSession(userId, name, email, photoUrl);
+                                sessionManager.createSession(userId, name, username, email, photoUrl);
                                 startActivity(new Intent(LoginActivity.this, DashboardActivity.class));
                                 finish();
                             });
@@ -59,7 +60,7 @@ public class LoginActivity extends AppCompatActivity {
                         public void onError(Throwable error) {
                             // Fallback if profile fetch fails
                             runOnUiThread(() -> {
-                                sessionManager.createSession(userId, "User", email);
+                                sessionManager.createSession(userId, "User", null, email, null);
                                 startActivity(new Intent(LoginActivity.this, DashboardActivity.class));
                                 finish();
                             });

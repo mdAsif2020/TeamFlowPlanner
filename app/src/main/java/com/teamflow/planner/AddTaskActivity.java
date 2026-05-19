@@ -13,9 +13,12 @@ import com.google.android.material.datepicker.MaterialDatePicker;
 import com.teamflow.planner.data.AppDatabase;
 import com.teamflow.planner.data.TaskPriority;
 import com.teamflow.planner.data.TaskStatus;
+import com.teamflow.planner.data.entity.Project;
 import com.teamflow.planner.data.entity.Task;
 import com.teamflow.planner.data.entity.TeamMember;
 import com.teamflow.planner.databinding.ActivityAddTaskBinding;
+import com.teamflow.planner.supabase.SupabaseCallback;
+import com.teamflow.planner.supabase.SupabaseService;
 import com.teamflow.planner.ui.adapter.UserSearchAdapter;
 import com.teamflow.planner.util.EntityTimestamps;
 import com.teamflow.planner.util.ProjectCompletionHelper;
@@ -87,16 +90,18 @@ public class AddTaskActivity extends AppCompatActivity {
         binding.autoCompletePriority.setText(priorityLabels[1], false);
 
         db.teamMemberDao().observeMembersForProject(projectId).observe(this, members -> {
-            List<String> names = new ArrayList<>();
+            List<String> suggestions = new ArrayList<>();
             if (members != null) {
                 for (TeamMember m : members) {
-                    if (m.name != null && !m.name.isEmpty()) {
-                        names.add(m.name);
+                    if (m.username != null && !m.username.isEmpty()) {
+                        suggestions.add(m.username);
+                    } else if (m.name != null && !m.name.isEmpty()) {
+                        suggestions.add(m.name);
                     }
                 }
             }
             binding.inputAssignee.setAdapter(new ArrayAdapter<>(this,
-                    android.R.layout.simple_dropdown_item_1line, names));
+                    android.R.layout.simple_dropdown_item_1line, suggestions));
         });
 
         long taskId = getIntent().getLongExtra(EXTRA_TASK_ID, -1L);
@@ -264,6 +269,7 @@ public class AddTaskActivity extends AppCompatActivity {
                     existing.priority = priority;
                     EntityTimestamps.touch(existing);
                     db.taskDao().update(existing);
+                    pushTaskToSupabase(existing, projectId);
                     ProjectCompletionHelper.refreshProjectCompletion(db, projectId);
                     if (newStatus == TaskStatus.COMPLETED && old != TaskStatus.COMPLETED) {
                         StreakTracker.onTaskCompleted(AddTaskActivity.this);
@@ -280,13 +286,48 @@ public class AddTaskActivity extends AppCompatActivity {
                 t.status = newStatus;
                 t.priority = priority;
                 EntityTimestamps.touch(t);
-                db.taskDao().insert(t);
+                long taskId = db.taskDao().insert(t);
+                t.id = taskId;
+                pushTaskToSupabase(t, projectId);
                 ProjectCompletionHelper.refreshProjectCompletion(db, projectId);
                 if (newStatus == TaskStatus.COMPLETED) {
                     StreakTracker.onTaskCompleted(AddTaskActivity.this);
                 }
             }
             runOnUiThread(this::finish);
+        });
+    }
+
+    private void pushTaskToSupabase(Task task, long localProjectId) {
+        io.execute(() -> {
+            Project p = db.projectDao().getProjectById(localProjectId);
+            if (p == null || p.remoteId == null) return;
+
+            SupabaseService.TaskSync sync = new SupabaseService.TaskSync(
+                    task.remoteId,
+                    p.remoteId,
+                    task.title,
+                    task.description,
+                    task.assignee,
+                    task.status.name(),
+                    task.priority.name(),
+                    task.deadline,
+                    task.lastModified
+            );
+
+            SupabaseService.upsertTask(sync, new SupabaseCallback<Long>() {
+                @Override
+                public void onSuccess(Long remoteId) {
+                    if (task.remoteId == null) {
+                        task.remoteId = remoteId;
+                        io.execute(() -> db.taskDao().update(task));
+                    }
+                }
+
+                @Override
+                public void onError(Throwable error) {
+                }
+            });
         });
     }
 
@@ -300,6 +341,12 @@ public class AddTaskActivity extends AppCompatActivity {
                 .setPositiveButton(R.string.delete, (d, w) -> io.execute(() -> {
                     Task t = db.taskDao().getTaskById(editingTaskId);
                     if (t != null) {
+                        if (t.remoteId != null) {
+                            SupabaseService.deleteTask(t.remoteId, new SupabaseCallback<Void>() {
+                                @Override public void onSuccess(Void r) {}
+                                @Override public void onError(Throwable e) {}
+                            });
+                        }
                         db.taskDao().delete(t);
                         ProjectCompletionHelper.refreshProjectCompletion(db, projectId);
                     }

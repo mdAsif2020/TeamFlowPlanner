@@ -79,6 +79,11 @@
             android:parentActivityName="com.teamflow.planner.MemberDirectoryActivity" />
 
         <activity
+            android:name=".NotificationsActivity"
+            android:exported="false"
+            android:parentActivityName=".DashboardActivity" />
+
+        <activity
             android:name="com.teamflow.planner.InvitationsActivity"
             android:exported="false"
             android:parentActivityName="com.teamflow.planner.DashboardActivity" />

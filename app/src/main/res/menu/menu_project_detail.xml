@@ -21,6 +21,10 @@
         android:title="@string/team_members"
         app:showAsAction="never" />
     <item
+        android:id="@+id/action_invite_member"
+        android:title="@string/invite_members"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_edit_project"
         android:title="@string/edit_project"
         app:showAsAction="never" />

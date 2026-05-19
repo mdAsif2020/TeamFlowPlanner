@@ -29,9 +29,12 @@ public class TeamMember {
     @NonNull
     public String name;
 
+    public String username;
+
     public long createdAt;
 
     public TeamMember() {
         this.name = "";
+        this.username = "";
     }
 }

@@ -44,6 +44,44 @@
                     android:maxLines="1"
                     android:ellipsize="end" />
 
+                <!-- Notifications Action -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/buttonNotifications"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginEnd="8dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardBackgroundColor="@color/space_glass"
+                    app:cardCornerRadius="18dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/neon_purple"
+                    app:strokeWidth="1.5dp">
+
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:padding="8dp"
+                            android:src="@drawable/ic_notifications_24"
+                            app:tint="@color/neon_purple" />
+
+                        <!-- Notification Badge -->
+                        <View
+                            android:id="@+id/notificationBadge"
+                            android:layout_width="8dp"
+                            android:layout_height="8dp"
+                            android:layout_gravity="top|end"
+                            android:layout_marginTop="6dp"
+                            android:layout_marginEnd="6dp"
+                            android:background="@drawable/circle_shape"
+                            android:backgroundTint="@color/neon_pink"
+                            android:visibility="gone" />
+                    </FrameLayout>
+                </com.google.android.material.card.MaterialCardView>
+
                 <!-- Profile Action -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/buttonProfile"

@@ -43,7 +43,12 @@ public class InvitationAdapter extends RecyclerView.Adapter<InvitationAdapter.Vi
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         SupabaseService.Invitation item = list.get(position);
         holder.binding.textProjectName.setText(item.getProject_name());
-        holder.binding.textInviterEmail.setText("Invited by: " + item.getInviter_email());
+        
+        String inviter = item.getInviter_username();
+        if (inviter == null || inviter.isEmpty()) {
+            inviter = item.getInviter_email();
+        }
+        holder.binding.textInviterEmail.setText("Invited by: " + inviter);
 
         holder.binding.buttonAccept.setOnClickListener(v -> listener.onAccept(item));
         holder.binding.buttonReject.setOnClickListener(v -> listener.onReject(item));

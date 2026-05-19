@@ -21,8 +21,15 @@ import com.bumptech.glide.Glide;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.teamflow.planner.data.AppDatabase;
 import com.teamflow.planner.data.DailyFocusItem;
+import com.teamflow.planner.data.TaskPriority;
+import com.teamflow.planner.data.TaskStatus;
+import com.teamflow.planner.data.entity.Notification;
 import com.teamflow.planner.data.entity.Project;
+import com.teamflow.planner.data.entity.Task;
+import com.teamflow.planner.data.ProjectListItem;
 import com.teamflow.planner.databinding.ActivityDashboardBinding;
+import com.teamflow.planner.supabase.SupabaseCallback;
+import com.teamflow.planner.supabase.SupabaseService;
 import com.teamflow.planner.databinding.ItemDailyFocusBinding;
 import com.teamflow.planner.supabase.SupabaseCallback;
 import com.teamflow.planner.supabase.SupabaseService;
@@ -89,11 +96,25 @@ public class DashboardActivity extends AppCompatActivity {
 
         binding.buttonProfile.setOnClickListener(v -> {
             Intent i = new Intent(this, MemberProfileActivity.class);
-            i.putExtra(MemberProfileActivity.EXTRA_MEMBER_NAME, currentUserName);
+            i.putExtra(MemberProfileActivity.EXTRA_MEMBER_NAME, sessionManager.getUserName());
+            i.putExtra(MemberProfileActivity.EXTRA_MEMBER_EMAIL, sessionManager.getUserEmail());
+            i.putExtra(MemberProfileActivity.EXTRA_MEMBER_USERNAME, sessionManager.getUserUsername());
             startActivity(i);
         });
 
+        binding.buttonNotifications.setOnClickListener(v -> {
+            startActivity(new Intent(this, NotificationsActivity.class));
+        });
+
         db = AppDatabase.getInstance(this);
+
+        // Observe local unread notifications
+        db.notificationDao().observeUnreadCount().observe(this, count -> {
+            updateNotificationBadge(count != null && count > 0);
+        });
+
+        // Periodically check for new invitations to show badge
+        io.execute(this::startInvitationRealtimeListener);
 
         projectAdapter = new ProjectAdapter(new ProjectAdapter.Listener() {
             @Override
@@ -113,6 +134,12 @@ public class DashboardActivity extends AppCompatActivity {
                         Intent ed = new Intent(DashboardActivity.this, AddProjectActivity.class);
                         ed.putExtra(AddProjectActivity.EXTRA_PROJECT_ID, project.id);
                         startActivity(ed);
+                        return true;
+                    }
+                    if (id == R.id.action_invite_member) {
+                        Intent i = new Intent(DashboardActivity.this, TeamMembersActivity.class);
+                        i.putExtra(TeamMembersActivity.EXTRA_PROJECT_ID, project.id);
+                        startActivity(i);
                         return true;
                     }
                     if (id == R.id.action_delete_project) {
@@ -136,6 +163,10 @@ public class DashboardActivity extends AppCompatActivity {
             projectAdapter.submitSource(rows);
             boolean empty = rows == null || rows.isEmpty();
             binding.textNoProjects.setVisibility(empty ? View.VISIBLE : View.GONE);
+            
+            if (rows != null && !rows.isEmpty()) {
+                startGlobalRealtimeListeners(rows);
+            }
         });
 
         // Team Progress Observers
@@ -171,6 +202,78 @@ public class DashboardActivity extends AppCompatActivity {
         refreshStreakUi();
     }
 
+    private void startGlobalRealtimeListeners(List<ProjectListItem> projects) {
+        for (var p : projects) {
+            if (p.project.remoteId != null) {
+                long remoteId = p.project.remoteId;
+                SupabaseService.observeTasks(remoteId, new SupabaseCallback<List<SupabaseService.TaskSync>>() {
+                    @Override
+                    public void onSuccess(List<SupabaseService.TaskSync> tasks) {
+                        // Check for new tasks or status changes
+                        io.execute(() -> processTaskUpdates(p.project, tasks));
+                    }
+                    @Override
+                    public void onError(Throwable error) {}
+                });
+            }
+        }
+    }
+
+    private void processTaskUpdates(Project project, List<SupabaseService.TaskSync> remoteTasks) {
+        for (var rt : remoteTasks) {
+            if (rt.getId() == null) continue;
+            
+            Task local = db.taskDao().getTaskByRemoteIdSync(rt.getId());
+            String eventId;
+            if (local == null) {
+                eventId = "new_task_" + rt.getId();
+                if (db.notificationDao().exists(eventId)) continue;
+
+                // New task!
+                Notification n = new Notification(
+                    "New Task in " + project.name,
+                    "Task '" + rt.getTitle() + "' was added.",
+                    "TASK_UPDATE"
+                );
+                n.projectId = project.id;
+                n.remoteId = eventId;
+                db.notificationDao().insert(n);
+            } else if (local.status != TaskStatus.valueOf(rt.getStatus())) {
+                eventId = "status_change_" + rt.getId() + "_" + rt.getStatus();
+                if (db.notificationDao().exists(eventId)) continue;
+
+                // Status changed!
+                Notification n = new Notification(
+                    "Task Update in " + project.name,
+                    "Task '" + rt.getTitle() + "' is now " + rt.getStatus() + ".",
+                    "TASK_UPDATE"
+                );
+                n.projectId = project.id;
+                n.remoteId = eventId;
+                db.notificationDao().insert(n);
+            }
+        }
+    }
+
+    private void startInvitationRealtimeListener() {
+        String email = sessionManager.getUserEmail();
+        if (email == null) return;
+        SupabaseService.observeInvitations(email, new SupabaseCallback<List<SupabaseService.Invitation>>() {
+            @Override
+            public void onSuccess(List<SupabaseService.Invitation> invitations) {
+                if (!invitations.isEmpty()) {
+                    runOnUiThread(() -> updateNotificationBadge(true));
+                }
+            }
+            @Override
+            public void onError(Throwable error) {}
+        });
+    }
+
+    private void updateNotificationBadge(boolean show) {
+        binding.notificationBadge.setVisibility(show ? View.VISIBLE : View.GONE);
+    }
+
     private void updateProfileDisplay(String name) {
         if (name != null && !name.isEmpty()) {
             binding.textProfileLetter.setText(String.valueOf(name.charAt(0)).toUpperCase());
@@ -181,6 +284,7 @@ public class DashboardActivity extends AppCompatActivity {
 
     private void loadProfilePicture() {
         String currentName = sessionManager.getUserName();
+        String currentEmail = sessionManager.getUserEmail();
         binding.textGreeting.setText("Hi, " + currentName + "!");
         updateProfileDisplay(currentName);
 
@@ -213,6 +317,8 @@ public class DashboardActivity extends AppCompatActivity {
 
         if (sessionManager.getUserId() != null) {
             SupabaseService.fetchProfileById(sessionManager.getUserId(), callback);
+        } else if (currentEmail != null) {
+            SupabaseService.fetchProfileByEmail(currentEmail, callback);
         } else {
             SupabaseService.fetchProfile(currentName, callback);
         }
@@ -252,6 +358,8 @@ public class DashboardActivity extends AppCompatActivity {
         binding.btnNavProfile.setOnClickListener(v -> {
             Intent intent = new Intent(this, MemberProfileActivity.class);
             intent.putExtra(MemberProfileActivity.EXTRA_MEMBER_NAME, sessionManager.getUserName());
+            intent.putExtra(MemberProfileActivity.EXTRA_MEMBER_EMAIL, sessionManager.getUserEmail());
+            intent.putExtra(MemberProfileActivity.EXTRA_MEMBER_USERNAME, sessionManager.getUserUsername());
             startActivity(intent);
         });
     }
@@ -352,6 +460,70 @@ public class DashboardActivity extends AppCompatActivity {
         super.onResume();
         loadProfilePicture();
         refreshStreakUi();
+        syncAllData();
+    }
+
+    private void syncAllData() {
+        String email = sessionManager.getUserEmail();
+        if (email == null || email.isEmpty()) return;
+
+        SupabaseService.fetchMyProjects(email, new SupabaseCallback<List<SupabaseService.ProjectSync>>() {
+            @Override
+            public void onSuccess(List<SupabaseService.ProjectSync> projects) {
+                io.execute(() -> {
+                    for (SupabaseService.ProjectSync ps : projects) {
+                        Project p = db.projectDao().getProjectByRemoteIdSync(ps.getId());
+                        if (p == null) {
+                            p = new Project();
+                            p.remoteId = ps.getId();
+                            p.createdAt = ps.getCreated_at() != null ? ps.getCreated_at() : System.currentTimeMillis();
+                        }
+                        p.name = ps.getName();
+                        p.description = ps.getDescription();
+                        p.ownerEmail = ps.getOwner_email();
+                        p.lastModified = System.currentTimeMillis();
+                        db.projectDao().insertOrReplace(p);
+                        
+                        Project localP = db.projectDao().getProjectByRemoteIdSync(ps.getId());
+                        if (localP != null) {
+                            syncTasksForProject(localP.id, ps.getId());
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onError(Throwable error) {}
+        });
+    }
+
+    private void syncTasksForProject(long localProjectId, long remoteProjectId) {
+        SupabaseService.fetchTasks(remoteProjectId, new SupabaseCallback<List<SupabaseService.TaskSync>>() {
+            @Override
+            public void onSuccess(List<SupabaseService.TaskSync> tasks) {
+                io.execute(() -> {
+                    for (SupabaseService.TaskSync ts : tasks) {
+                        Task t = db.taskDao().getTaskByRemoteIdSync(ts.getId());
+                        if (t == null) {
+                            t = new Task();
+                            t.remoteId = ts.getId();
+                            t.projectId = localProjectId;
+                        }
+                        t.title = ts.getTitle();
+                        t.description = ts.getDescription();
+                        t.assignee = ts.getAssignee();
+                        t.status = TaskStatus.valueOf(ts.getStatus());
+                        t.priority = TaskPriority.valueOf(ts.getPriority());
+                        t.deadline = ts.getDeadline();
+                        t.lastModified = ts.getUpdated_at() != null ? ts.getUpdated_at() : System.currentTimeMillis();
+                        db.taskDao().insertOrReplace(t);
+                    }
+                });
+            }
+
+            @Override
+            public void onError(Throwable error) {}
+        });
     }
 
     @Override

@@ -59,21 +59,35 @@
             app:layout_constraintBottom_toBottomOf="@id/avatarContainer"
             app:layout_constraintEnd_toEndOf="@id/avatarContainer" />
 
-        <TextView
-            android:id="@+id/textName"
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="8dp"
-            android:textAppearance="?attr/textAppearanceTitleMedium"
-            android:textColor="@color/text_high_vibe"
-            android:textStyle="bold"
-            android:letterSpacing="0.02"
+            android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/iconArrow"
             app:layout_constraintStart_toEndOf="@id/avatarContainer"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="Modabbir Hossen" />
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/textName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="@color/text_high_vibe"
+                android:textStyle="bold"
+                android:letterSpacing="0.02"
+                tools:text="Modabbir Hossen" />
+
+            <TextView
+                android:id="@+id/textUsername"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="@color/text_mid_vibe"
+                tools:text="@modabbir" />
+        </LinearLayout>
 
         <ImageButton
             android:id="@+id/iconArrow"

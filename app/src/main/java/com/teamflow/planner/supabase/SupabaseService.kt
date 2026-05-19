@@ -130,6 +130,8 @@ object SupabaseService {
         val id: String? = null,
         @com.squareup.moshi.Json(name = "name")
         val name: String? = null,
+        @com.squareup.moshi.Json(name = "username")
+        val username: String? = null,
         @com.squareup.moshi.Json(name = "email")
         val email: String? = null,
         @com.squareup.moshi.Json(name = "bio")
@@ -159,11 +161,17 @@ object SupabaseService {
             runCatching {
                 client.from("profiles")
                     .select {
-                        filter { eq("name", name) }
+                        filter { 
+                            or {
+                                eq("name", name)
+                                eq("username", name)
+                            }
+                        }
                     }
-                    .decodeSingle<Profile>()
+                    .decodeSingleOrNull<Profile>()
             }.onSuccess {
-                callback.onSuccess(it)
+                if (it != null) callback.onSuccess(it)
+                else callback.onError(Exception("Profile not found"))
             }.onFailure {
                 callback.onError(it)
             }
@@ -178,9 +186,46 @@ object SupabaseService {
                     .select {
                         filter { eq("id", id) }
                     }
-                    .decodeSingle<Profile>()
+                    .decodeSingleOrNull<Profile>()
             }.onSuccess {
-                callback.onSuccess(it)
+                if (it != null) callback.onSuccess(it)
+                else callback.onError(Exception("Profile not found"))
+            }.onFailure {
+                callback.onError(it)
+            }
+        }
+    }
+
+    @JvmStatic
+    fun fetchProfileByEmail(email: String, callback: SupabaseCallback<Profile>) {
+        scope.launch {
+            runCatching {
+                client.from("profiles")
+                    .select {
+                        filter { eq("email", email) }
+                    }
+                    .decodeSingleOrNull<Profile>()
+            }.onSuccess {
+                if (it != null) callback.onSuccess(it)
+                else callback.onError(Exception("Profile not found"))
+            }.onFailure {
+                callback.onError(it)
+            }
+        }
+    }
+
+    @JvmStatic
+    fun fetchProfileByUsername(username: String, callback: SupabaseCallback<Profile>) {
+        scope.launch {
+            runCatching {
+                client.from("profiles")
+                    .select {
+                        filter { eq("username", username) }
+                    }
+                    .decodeSingleOrNull<Profile>()
+            }.onSuccess {
+                if (it != null) callback.onSuccess(it)
+                else callback.onError(Exception("Profile not found"))
             }.onFailure {
                 callback.onError(it)
             }
@@ -196,6 +241,7 @@ object SupabaseService {
                         filter {
                             or {
                                 ilike("name", "%$query%")
+                                ilike("username", "%$query%")
                                 ilike("email", "%$query%")
                             }
                         }
@@ -281,7 +327,9 @@ object SupabaseService {
         @com.squareup.moshi.Json(name = "user_email")
         val user_email: String? = null,
         @com.squareup.moshi.Json(name = "user_name")
-        val user_name: String? = null
+        val user_name: String? = null,
+        @com.squareup.moshi.Json(name = "user_username")
+        val user_username: String? = null
     )
 
     @JvmStatic
@@ -324,6 +372,8 @@ object SupabaseService {
         val project_name: String? = null,
         @com.squareup.moshi.Json(name = "inviter_email")
         val inviter_email: String? = null,
+        @com.squareup.moshi.Json(name = "inviter_username")
+        val inviter_username: String? = null,
         @com.squareup.moshi.Json(name = "invitee_email")
         val invitee_email: String? = null,
         @com.squareup.moshi.Json(name = "status")
@@ -372,6 +422,143 @@ object SupabaseService {
                 }
             }.onSuccess {
                 callback.onSuccess(null)
+            }.onFailure {
+                callback.onError(it)
+            }
+        }
+    }
+
+    @JvmStatic
+    fun observeInvitations(email: String, callback: SupabaseCallback<List<Invitation>>) {
+        scope.launch {
+            try {
+                @OptIn(SupabaseExperimental::class)
+                client.from("invitations")
+                    .selectAsFlow<Invitation, Long?>(
+                        Invitation::id,
+                        filter = FilterOperation("invitee_email", FilterOperator.EQ, email)
+                    )
+                    .onEach { callback.onSuccess(it.filter { inv -> inv.status == "PENDING" }) }
+                    .catch { callback.onError(it) }
+                    .collect { }
+            } catch (e: Exception) {
+                callback.onError(e)
+            }
+        }
+    }
+
+    @kotlinx.serialization.Serializable
+    data class TaskSync(
+        @com.squareup.moshi.Json(name = "id")
+        val id: Long? = null,
+        @com.squareup.moshi.Json(name = "project_id")
+        val project_id: Long? = null,
+        @com.squareup.moshi.Json(name = "title")
+        val title: String? = null,
+        @com.squareup.moshi.Json(name = "description")
+        val description: String? = null,
+        @com.squareup.moshi.Json(name = "assignee")
+        val assignee: String? = null,
+        @com.squareup.moshi.Json(name = "status")
+        val status: String? = null,
+        @com.squareup.moshi.Json(name = "priority")
+        val priority: String? = null,
+        @com.squareup.moshi.Json(name = "deadline")
+        val deadline: Long? = null,
+        @com.squareup.moshi.Json(name = "updated_at")
+        val updated_at: Long? = null
+    )
+
+    @JvmStatic
+    fun upsertTask(task: TaskSync, callback: SupabaseCallback<Long>) {
+        scope.launch {
+            runCatching {
+                val response = client.from("tasks").upsert(task) {
+                    select()
+                }.decodeSingle<TaskSync>()
+                response.id ?: throw Exception("Failed to get task ID")
+            }.onSuccess {
+                callback.onSuccess(it)
+            }.onFailure {
+                callback.onError(it)
+            }
+        }
+    }
+
+    @JvmStatic
+    fun fetchTasks(projectId: Long, callback: SupabaseCallback<List<TaskSync>>) {
+        scope.launch {
+            runCatching {
+                client.from("tasks")
+                    .select {
+                        filter { eq("project_id", projectId) }
+                    }
+                    .decodeList<TaskSync>()
+            }.onSuccess {
+                callback.onSuccess(it)
+            }.onFailure {
+                callback.onError(it)
+            }
+        }
+    }
+
+    @JvmStatic
+    fun deleteTask(taskId: Long, callback: SupabaseCallback<Void>) {
+        scope.launch {
+            runCatching {
+                client.from("tasks").delete {
+                    filter { eq("id", taskId) }
+                }
+            }.onSuccess {
+                callback.onSuccess(null)
+            }.onFailure {
+                callback.onError(it)
+            }
+        }
+    }
+
+    @JvmStatic
+    fun observeTasks(projectId: Long, callback: SupabaseCallback<List<TaskSync>>) {
+        scope.launch {
+            try {
+                @OptIn(SupabaseExperimental::class)
+                client.from("tasks")
+                    .selectAsFlow<TaskSync, Long?>(
+                        TaskSync::id,
+                        filter = FilterOperation("project_id", FilterOperator.EQ, projectId)
+                    )
+                    .onEach { callback.onSuccess(it) }
+                    .catch { callback.onError(it) }
+                    .collect { }
+            } catch (e: Exception) {
+                callback.onError(e)
+            }
+        }
+    }
+
+    @JvmStatic
+    fun fetchMyProjects(email: String, callback: SupabaseCallback<List<ProjectSync>>) {
+        scope.launch {
+            runCatching {
+                // Projects where I am the owner
+                val owned = client.from("projects").select {
+                    filter { eq("owner_email", email) }
+                }.decodeList<ProjectSync>()
+
+                // Projects where I am a member
+                val memberOfIds = client.from("project_members").select {
+                    filter { eq("user_email", email) }
+                }.decodeList<ProjectMemberSync>().mapNotNull { it.project_id }
+
+                val memberOf = if (memberOfIds.isNotEmpty()) {
+                    client.from("projects").select {
+                        filter { isIn("id", memberOfIds) }
+                    }.decodeList<ProjectSync>()
+                } else emptyList()
+
+                (owned + memberOf).distinctBy { it.id }
+            }.onSuccess {
+                callback.onSuccess(it)
             }.onFailure {
                 callback.onError(it)
             }

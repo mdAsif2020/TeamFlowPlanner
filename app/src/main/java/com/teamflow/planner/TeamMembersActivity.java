@@ -44,6 +44,7 @@ public class TeamMembersActivity extends AppCompatActivity {
     private AppDatabase db;
     private long projectId;
     private TeamMemberRosterAdapter adapter;
+    private SessionManager sessionManager;
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private List<String> registeredUserNames = new ArrayList<>();
 
@@ -60,6 +61,7 @@ public class TeamMembersActivity extends AppCompatActivity {
         }
 
         db = AppDatabase.getInstance(this);
+        sessionManager = new SessionManager(this);
 
         setSupportActionBar(binding.toolbar);
         if (getSupportActionBar() != null) {
@@ -117,6 +119,8 @@ public class TeamMembersActivity extends AppCompatActivity {
                                     TeamMember nm = new TeamMember();
                                     nm.projectId = projectId;
                                     nm.name = ms.getUser_name();
+                                    nm.username = ms.getUser_username();
+                                    if (nm.username == null) nm.username = ms.getUser_name();
                                     nm.createdAt = System.currentTimeMillis();
                                     db.teamMemberDao().insert(nm);
                                 }
@@ -126,7 +130,9 @@ public class TeamMembersActivity extends AppCompatActivity {
 
                     @Override
                     public void onError(Throwable error) {
-                        // ignore
+                        runOnUiThread(() -> {
+                            Toast.makeText(TeamMembersActivity.this, "Failed to sync members: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                        });
                     }
                 });
             }
@@ -150,22 +156,19 @@ public class TeamMembersActivity extends AppCompatActivity {
     }
 
     private void showAddMemberDialog() {
-        // Create modern OutlinedBox TextInputLayout
         TextInputLayout textInputLayout = new TextInputLayout(this, null, com.google.android.material.R.style.Widget_Material3_TextInputLayout_OutlinedBox_ExposedDropdownMenu);
-        textInputLayout.setHint(R.string.member_name_hint);
+        textInputLayout.setHint("Username or Email");
         textInputLayout.setBoxCornerRadii(48f, 48f, 48f, 48f);
-        textInputLayout.setPadding(0, 0, 0, 0);
 
         AutoCompleteTextView input = new AutoCompleteTextView(textInputLayout.getContext());
         input.setSingleLine(true);
-        input.setThreshold(1); // Show suggestions after 1 character
+        input.setThreshold(1);
         
         ArrayAdapter<String> suggestionAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, registeredUserNames);
         input.setAdapter(suggestionAdapter);
 
         textInputLayout.addView(input);
 
-        // Add margins to the container
         FrameLayout container = new FrameLayout(this);
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         int margin = (int) (24 * getResources().getDisplayMetrics().density);
@@ -176,22 +179,84 @@ public class TeamMembersActivity extends AppCompatActivity {
         new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.add_team_member)
                 .setView(container)
-                .setPositiveButton(R.string.save, (d, w) -> {
-                    CharSequence cs = input.getText();
-                    String name = cs != null ? cs.toString().trim() : "";
-                    if (TextUtils.isEmpty(name)) {
-                        Toast.makeText(this, R.string.error_member_name, Toast.LENGTH_SHORT).show();
+                .setPositiveButton("Invite", (d, w) -> {
+                    String query = input.getText().toString().trim();
+                    if (TextUtils.isEmpty(query)) {
+                        Toast.makeText(this, "Please enter a username or email", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    io.execute(() -> {
-                        TeamMember m = new TeamMember();
-                        m.projectId = projectId;
-                        m.name = name;
-                        m.createdAt = System.currentTimeMillis();
-                        db.teamMemberDao().insert(m);
-                    });
+                    searchAndInvite(query);
                 })
                 .setNegativeButton(R.string.cancel, null)
                 .show();
     }
+
+    private void searchAndInvite(String query) {
+        SupabaseService.searchProfiles(query, new SupabaseCallback<List<SupabaseService.Profile>>() {
+            @Override
+            public void onSuccess(List<SupabaseService.Profile> results) {
+                if (results == null || results.isEmpty()) {
+                    runOnUiThread(() -> Toast.makeText(TeamMembersActivity.this, "User not found", Toast.LENGTH_SHORT).show());
+                    return;
+                }
+
+                // If multiple, maybe find exact username match
+                SupabaseService.Profile target = results.get(0);
+                for (SupabaseService.Profile p : results) {
+                    if (query.equalsIgnoreCase(p.getUsername()) || query.equalsIgnoreCase(p.getEmail())) {
+                        target = p;
+                        break;
+                    }
+                }
+
+                SupabaseService.Profile finalTarget = target;
+                runOnUiThread(() -> {
+                    new MaterialAlertDialogBuilder(TeamMembersActivity.this)
+                            .setTitle("Send Invitation")
+                            .setMessage("Invite " + finalTarget.getName() + " (@" + finalTarget.getUsername() + ") to this project?")
+                            .setPositiveButton("Send", (d, w) -> sendActualInvitation(finalTarget))
+                            .setNegativeButton("Cancel", null)
+                            .show();
+                });
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                runOnUiThread(() -> Toast.makeText(TeamMembersActivity.this, "Search failed: " + error.getMessage(), Toast.LENGTH_SHORT).show());
+            }
+        });
+    }
+
+    private void sendActualInvitation(SupabaseService.Profile target) {
+        io.execute(() -> {
+            Project project = db.projectDao().getProjectById(projectId);
+            if (project == null || project.remoteId == null) {
+                runOnUiThread(() -> Toast.makeText(TeamMembersActivity.this, "Project not synced to cloud yet", Toast.LENGTH_SHORT).show());
+                return;
+            }
+
+            SupabaseService.Invitation inv = new SupabaseService.Invitation(
+                    null,
+                    project.remoteId,
+                    project.name,
+                    sessionManager.getUserEmail(),
+                    sessionManager.getUserUsername(),
+                    target.getEmail(),
+                    "PENDING"
+            );
+
+            SupabaseService.sendInvitation(inv, new SupabaseCallback<Void>() {
+                @Override
+                public void onSuccess(Void result) {
+                    runOnUiThread(() -> Toast.makeText(TeamMembersActivity.this, "Invitation sent to " + target.getUsername(), Toast.LENGTH_SHORT).show());
+                }
+
+                @Override
+                public void onError(Throwable error) {
+                    runOnUiThread(() -> Toast.makeText(TeamMembersActivity.this, "Failed to send invitation", Toast.LENGTH_SHORT).show());
+                }
+            });
+        });
+    }
+
 }
