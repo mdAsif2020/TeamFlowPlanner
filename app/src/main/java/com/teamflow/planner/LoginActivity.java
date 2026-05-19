@@ -39,13 +39,31 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
-            SupabaseService.signIn(email, password, new SupabaseCallback<>() {
+            SupabaseService.signIn(email, password, new SupabaseCallback<String>() {
                 @Override
                 public void onSuccess(String userId) {
-                    runOnUiThread(() -> {
-                        sessionManager.createSession(userId, "User", email);
-                        startActivity(new Intent(LoginActivity.this, DashboardActivity.class));
-                        finish();
+                    // After successful sign in, fetch the profile to get the user's name
+                    SupabaseService.fetchProfileById(userId, new SupabaseCallback<SupabaseService.Profile>() {
+                        @Override
+                        public void onSuccess(SupabaseService.Profile profile) {
+                            runOnUiThread(() -> {
+                                String name = (profile != null && profile.getName() != null) ? profile.getName() : "User";
+                                String photoUrl = (profile != null) ? profile.getPhoto_url() : null;
+                                sessionManager.createSession(userId, name, email, photoUrl);
+                                startActivity(new Intent(LoginActivity.this, DashboardActivity.class));
+                                finish();
+                            });
+                        }
+
+                        @Override
+                        public void onError(Throwable error) {
+                            // Fallback if profile fetch fails
+                            runOnUiThread(() -> {
+                                sessionManager.createSession(userId, "User", email);
+                                startActivity(new Intent(LoginActivity.this, DashboardActivity.class));
+                                finish();
+                            });
+                        }
                     });
                 }
 

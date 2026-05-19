@@ -12,6 +12,10 @@
         android:title="@string/sync_now"
         app:showAsAction="never" />
     <item
+        android:id="@+id/action_invitations"
+        android:title="Invitations"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_member_workload"
         android:title="@string/member_workload"
         app:showAsAction="never" />

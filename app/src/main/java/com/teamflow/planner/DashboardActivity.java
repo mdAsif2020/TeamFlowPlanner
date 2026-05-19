@@ -219,10 +219,17 @@ public class DashboardActivity extends AppCompatActivity {
     }
 
     private void applyProfileImage(String url) {
+        if (url == null || url.isEmpty()) return;
+        
         binding.textProfileLetter.setVisibility(View.GONE);
         binding.imageProfileToolbar.setVisibility(View.VISIBLE);
+        
+        // Use a signature that changes daily to allow some caching but ensure updates
+        String daySignature = new java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.US).format(new java.util.Date());
+        
         Glide.with(this)
                 .load(url)
+                .signature(new com.bumptech.glide.signature.ObjectKey(daySignature))
                 .circleCrop()
                 .into(binding.imageProfileToolbar);
     }
@@ -290,6 +297,10 @@ public class DashboardActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
+        if (id == R.id.action_invitations) {
+            startActivity(new Intent(this, InvitationsActivity.class));
+            return true;
+        }
         if (id == R.id.action_sync_now) {
             // Placeholder for Supabase sync if needed
             Toast.makeText(this, "Syncing with Supabase...", Toast.LENGTH_SHORT).show();
@@ -386,7 +397,17 @@ public class DashboardActivity extends AppCompatActivity {
         new AlertDialog.Builder(this)
                 .setTitle(R.string.delete_project_title)
                 .setMessage(R.string.delete_project_message)
-                .setPositiveButton(R.string.delete, (d, w) -> io.execute(() -> db.projectDao().delete(project)))
+                .setPositiveButton(R.string.delete, (d, w) -> io.execute(() -> {
+                    db.projectDao().delete(project);
+                    if (project.remoteId != null) {
+                        SupabaseService.deleteProject(project.remoteId, new SupabaseCallback<Void>() {
+                            @Override
+                            public void onSuccess(Void result) {}
+                            @Override
+                            public void onError(Throwable error) {}
+                        });
+                    }
+                }))
                 .setNegativeButton(R.string.cancel, null)
                 .show();
     }

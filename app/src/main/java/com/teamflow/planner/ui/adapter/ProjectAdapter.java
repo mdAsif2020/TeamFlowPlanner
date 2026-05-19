@@ -3,6 +3,7 @@ package com.teamflow.planner.ui.adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -109,6 +110,62 @@ public class ProjectAdapter extends RecyclerView.Adapter<ProjectAdapter.VH> {
 
             binding.cardProject.setOnClickListener(v -> listener.onProjectClick(p));
             binding.buttonMore.setOnClickListener(v -> listener.onProjectOverflow(p, v));
+
+            bindMembers(row.members);
+        }
+
+        private void bindMembers(List<com.teamflow.planner.data.entity.TeamMember> members) {
+            binding.memberContainer.removeAllViews();
+            if (members == null || members.isEmpty()) return;
+
+            int maxDisplay = 3;
+            int count = Math.min(members.size(), maxDisplay);
+            
+            int[] colors = {
+                0xFFBB86FC, // Neon Purple
+                0xFF03DAC5, // Neon Cyan
+                0xFFFFB74D, // Neon Gold
+                0xFFF06292  // Neon Pink
+            };
+
+            float density = binding.getRoot().getResources().getDisplayMetrics().density;
+
+            for (int i = 0; i < count; i++) {
+                com.teamflow.planner.data.entity.TeamMember member = members.get(i);
+                com.teamflow.planner.databinding.ItemMemberCircleBinding mb = 
+                    com.teamflow.planner.databinding.ItemMemberCircleBinding.inflate(
+                        LayoutInflater.from(binding.memberContainer.getContext()), 
+                        binding.memberContainer, false);
+                
+                if (!member.name.isEmpty()) {
+                    mb.textMemberLetter.setText(String.valueOf(member.name.charAt(0)).toUpperCase());
+                }
+                
+                mb.getRoot().setCardBackgroundColor(colors[i % colors.length]);
+                
+                if (i > 0) {
+                    ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) mb.getRoot().getLayoutParams();
+                    params.setMarginStart((int) (-8 * density));
+                    mb.getRoot().setLayoutParams(params);
+                }
+                
+                binding.memberContainer.addView(mb.getRoot());
+            }
+
+            if (members.size() > maxDisplay) {
+                com.teamflow.planner.databinding.ItemMemberCircleBinding mb = 
+                    com.teamflow.planner.databinding.ItemMemberCircleBinding.inflate(
+                        LayoutInflater.from(binding.memberContainer.getContext()), 
+                        binding.memberContainer, false);
+                mb.textMemberLetter.setText(String.format(Locale.getDefault(), "+%d", members.size() - maxDisplay));
+                mb.textMemberLetter.setTextSize(8f);
+                
+                ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) mb.getRoot().getLayoutParams();
+                params.setMarginStart((int) (-8 * density));
+                mb.getRoot().setLayoutParams(params);
+                
+                binding.memberContainer.addView(mb.getRoot());
+            }
         }
     }
 }

@@ -4,15 +4,19 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.PopupMenu;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.teamflow.planner.data.AppDatabase;
 import com.teamflow.planner.data.entity.User;
 import com.teamflow.planner.databinding.ActivityMemberDirectoryBinding;
+import com.teamflow.planner.supabase.SupabaseCallback;
+import com.teamflow.planner.supabase.SupabaseService;
 import com.teamflow.planner.ui.adapter.SimpleNameAdapter;
 
 import java.util.ArrayList;
@@ -20,12 +24,13 @@ import java.util.List;
 import java.util.concurrent.Executors;
 
 /**
- * Lists registered users from the local database so you can view profiles and tasks.
+ * Lists registered users from Supabase so you can view profiles and invite them.
  */
 public class MemberDirectoryActivity extends AppCompatActivity {
 
     private ActivityMemberDirectoryBinding binding;
     private AppDatabase db;
+    private SimpleNameAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,7 +46,7 @@ public class MemberDirectoryActivity extends AppCompatActivity {
         }
         binding.toolbar.setNavigationOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
 
-        SimpleNameAdapter adapter = new SimpleNameAdapter(new SimpleNameAdapter.Listener() {
+        adapter = new SimpleNameAdapter(new SimpleNameAdapter.Listener() {
             @Override
             public void onNameClick(@NonNull String name) {
                 openProfile(name);
@@ -55,13 +60,37 @@ public class MemberDirectoryActivity extends AppCompatActivity {
         binding.recyclerNames.setLayoutManager(new LinearLayoutManager(this));
         binding.recyclerNames.setAdapter(adapter);
 
-        // Fetch all registered users from the local DB
-        Executors.newSingleThreadExecutor().execute(() -> {
-            List<User> users = db.userDao().getAllUsers();
-            runOnUiThread(() -> {
-                adapter.submitList(users);
-                binding.textEmptyNames.setVisibility(users.isEmpty() ? View.VISIBLE : View.GONE);
-            });
+        binding.editSearchNames.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                searchUsers(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(android.text.Editable s) {}
+        });
+
+        // Initially load some users (e.g. searching with empty string or common prefix)
+        searchUsers("");
+    }
+
+    private void searchUsers(String query) {
+        SupabaseService.searchProfiles(query, new SupabaseCallback<List<SupabaseService.Profile>>() {
+            @Override
+            public void onSuccess(List<SupabaseService.Profile> profiles) {
+                runOnUiThread(() -> {
+                    adapter.submitList(profiles);
+                    binding.textEmptyNames.setVisibility(profiles.isEmpty() ? View.VISIBLE : View.GONE);
+                });
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                runOnUiThread(() -> Toast.makeText(MemberDirectoryActivity.this, "Search failed", Toast.LENGTH_SHORT).show());
+            }
         });
     }
 

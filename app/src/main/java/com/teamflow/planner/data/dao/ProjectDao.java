@@ -40,9 +40,7 @@ public interface ProjectDao {
     @Query("SELECT * FROM projects WHERE id = :id LIMIT 1")
     LiveData<Project> observeProject(long id);
 
-    /**
-     * Projects with task totals for list cards and progress rings.
-     */
+    @androidx.room.Transaction
     @Query("SELECT p.*, "
             + "(SELECT COUNT(*) FROM tasks t WHERE t.projectId = p.id) AS taskCount, "
             + "(SELECT COUNT(*) FROM tasks t WHERE t.projectId = p.id AND t.status = 'COMPLETED') AS completedCount "

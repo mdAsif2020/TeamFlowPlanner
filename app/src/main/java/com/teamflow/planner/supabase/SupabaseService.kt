@@ -126,11 +126,17 @@ object SupabaseService {
 
     @kotlinx.serialization.Serializable
     data class Profile(
+        @com.squareup.moshi.Json(name = "id")
         val id: String? = null,
+        @com.squareup.moshi.Json(name = "name")
         val name: String? = null,
+        @com.squareup.moshi.Json(name = "email")
         val email: String? = null,
+        @com.squareup.moshi.Json(name = "bio")
         val bio: String? = null,
+        @com.squareup.moshi.Json(name = "phone")
         val phone: String? = null,
+        @com.squareup.moshi.Json(name = "photo_url")
         val photo_url: String? = null
     )
 
@@ -205,12 +211,122 @@ object SupabaseService {
     }
 
     @kotlinx.serialization.Serializable
-    data class Invitation(
+    data class ProjectSync(
+        @com.squareup.moshi.Json(name = "id")
         val id: Long? = null,
+        @com.squareup.moshi.Json(name = "name")
+        val name: String? = null,
+        @com.squareup.moshi.Json(name = "description")
+        val description: String? = null,
+        @com.squareup.moshi.Json(name = "owner_email")
+        val owner_email: String? = null,
+        @com.squareup.moshi.Json(name = "created_at")
+        val created_at: Long? = null
+    )
+
+    @JvmStatic
+    fun upsertProject(project: ProjectSync, callback: SupabaseCallback<Long>) {
+        scope.launch {
+            runCatching {
+                val response = client.from("projects").upsert(project) {
+                    select()
+                }.decodeSingle<ProjectSync>()
+                response.id ?: throw Exception("Failed to get project ID")
+            }.onSuccess {
+                callback.onSuccess(it)
+            }.onFailure {
+                callback.onError(it)
+            }
+        }
+    }
+
+    @JvmStatic
+    fun fetchProjectById(id: Long, callback: SupabaseCallback<ProjectSync>) {
+        scope.launch {
+            runCatching {
+                client.from("projects")
+                    .select {
+                        filter { eq("id", id) }
+                    }
+                    .decodeSingle<ProjectSync>()
+            }.onSuccess {
+                callback.onSuccess(it)
+            }.onFailure {
+                callback.onError(it)
+            }
+        }
+    }
+
+    @JvmStatic
+    fun deleteProject(id: Long, callback: SupabaseCallback<Void>) {
+        scope.launch {
+            runCatching {
+                client.from("projects").delete {
+                    filter { eq("id", id) }
+                }
+            }.onSuccess {
+                callback.onSuccess(null)
+            }.onFailure {
+                callback.onError(it)
+            }
+        }
+    }
+
+    @kotlinx.serialization.Serializable
+    data class ProjectMemberSync(
+        @com.squareup.moshi.Json(name = "id")
+        val id: Long? = null,
+        @com.squareup.moshi.Json(name = "project_id")
         val project_id: Long? = null,
+        @com.squareup.moshi.Json(name = "user_email")
+        val user_email: String? = null,
+        @com.squareup.moshi.Json(name = "user_name")
+        val user_name: String? = null
+    )
+
+    @JvmStatic
+    fun addProjectMember(member: ProjectMemberSync, callback: SupabaseCallback<Void>) {
+        scope.launch {
+            runCatching {
+                client.from("project_members").insert(member)
+            }.onSuccess {
+                callback.onSuccess(null)
+            }.onFailure {
+                callback.onError(it)
+            }
+        }
+    }
+
+    @JvmStatic
+    fun fetchProjectMembers(projectId: Long, callback: SupabaseCallback<List<ProjectMemberSync>>) {
+        scope.launch {
+            runCatching {
+                client.from("project_members")
+                    .select {
+                        filter { eq("project_id", projectId) }
+                    }
+                    .decodeList<ProjectMemberSync>()
+            }.onSuccess {
+                callback.onSuccess(it)
+            }.onFailure {
+                callback.onError(it)
+            }
+        }
+    }
+
+    @kotlinx.serialization.Serializable
+    data class Invitation(
+        @com.squareup.moshi.Json(name = "id")
+        val id: Long? = null,
+        @com.squareup.moshi.Json(name = "project_id")
+        val project_id: Long? = null,
+        @com.squareup.moshi.Json(name = "project_name")
         val project_name: String? = null,
+        @com.squareup.moshi.Json(name = "inviter_email")
         val inviter_email: String? = null,
+        @com.squareup.moshi.Json(name = "invitee_email")
         val invitee_email: String? = null,
+        @com.squareup.moshi.Json(name = "status")
         val status: String = "PENDING"
     )
 
@@ -227,12 +343,54 @@ object SupabaseService {
         }
     }
 
+    @JvmStatic
+    fun fetchInvitations(email: String, callback: SupabaseCallback<List<Invitation>>) {
+        scope.launch {
+            runCatching {
+                client.from("invitations")
+                    .select {
+                        filter { eq("invitee_email", email) }
+                        filter { eq("status", "PENDING") }
+                    }
+                    .decodeList<Invitation>()
+            }.onSuccess {
+                callback.onSuccess(it)
+            }.onFailure {
+                callback.onError(it)
+            }
+        }
+    }
+
+    @JvmStatic
+    fun updateInvitationStatus(id: Long, status: String, callback: SupabaseCallback<Void>) {
+        scope.launch {
+            runCatching {
+                client.from("invitations").update(
+                    mapOf("status" to status)
+                ) {
+                    filter { eq("id", id) }
+                }
+            }.onSuccess {
+                callback.onSuccess(null)
+            }.onFailure {
+                callback.onError(it)
+            }
+        }
+    }
+
+    @kotlinx.serialization.Serializable
     data class MessageRow(
+        @com.squareup.moshi.Json(name = "id")
         val id: Long? = null,
+        @com.squareup.moshi.Json(name = "project_id")
         val project_id: Long? = null,
+        @com.squareup.moshi.Json(name = "sender_name")
         val sender_name: String? = null,
+        @com.squareup.moshi.Json(name = "sender_email")
         val sender_email: String? = null,
+        @com.squareup.moshi.Json(name = "message")
         val message: String? = null,
+        @com.squareup.moshi.Json(name = "timestamp")
         val timestamp: Long? = null
     )
 

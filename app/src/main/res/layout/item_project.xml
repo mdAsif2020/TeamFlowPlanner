@@ -101,33 +101,15 @@
             app:layout_constraintTop_toTopOf="@id/textCounts"
             tools:visibility="visible" />
 
-        <!-- Member list placeholder -->
+        <!-- Member list container -->
         <LinearLayout
+            android:id="@+id/memberContainer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="@id/textCounts"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/textCounts">
-
-            <View
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:background="@drawable/circle_shape"
-                android:backgroundTint="@color/neon_purple"
-                android:layout_marginEnd="-8dp"/>
-            <View
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:background="@drawable/circle_shape"
-                android:backgroundTint="@color/neon_cyan"
-                android:layout_marginEnd="-8dp"/>
-            <View
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:background="@drawable/circle_shape"
-                android:backgroundTint="@color/neon_gold" />
-        </LinearLayout>
+            app:layout_constraintTop_toTopOf="@id/textCounts" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

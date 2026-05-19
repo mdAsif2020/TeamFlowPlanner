@@ -35,6 +35,9 @@ public class Project {
     /** Last local or merged modification time (epoch millis) for cloud sync. */
     public long lastModified;
 
+    /** ID of the project in the remote database (Supabase). */
+    public Long remoteId;
+
     /** Required by Room. */
     public Project() {
         this.name = "";

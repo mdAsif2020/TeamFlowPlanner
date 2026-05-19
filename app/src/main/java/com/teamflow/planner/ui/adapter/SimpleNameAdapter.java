@@ -8,7 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.teamflow.planner.data.entity.User;
+import com.teamflow.planner.supabase.SupabaseService;
 import com.teamflow.planner.databinding.ItemSimpleNameBinding;
 
 import java.util.ArrayList;
@@ -25,13 +25,13 @@ public class SimpleNameAdapter extends RecyclerView.Adapter<SimpleNameAdapter.VH
     }
 
     private final Listener listener;
-    private final List<User> items = new ArrayList<>();
+    private final List<SupabaseService.Profile> items = new ArrayList<>();
 
     public SimpleNameAdapter(Listener listener) {
         this.listener = listener;
     }
 
-    public void submitList(List<User> next) {
+    public void submitList(List<SupabaseService.Profile> next) {
         items.clear();
         if (next != null) {
             items.addAll(next);
@@ -63,16 +63,17 @@ public class SimpleNameAdapter extends RecyclerView.Adapter<SimpleNameAdapter.VH
             this.binding = binding;
         }
 
-        void bind(User user) {
-            String name = user.name;
+        void bind(SupabaseService.Profile profile) {
+            String name = profile.getName();
             binding.textName.setText(name);
             
             // Modern Avatar Logic: Show image if available, else first letter
-            if (user.photoUrl != null && !user.photoUrl.isEmpty()) {
+            String photoUrl = profile.getPhoto_url();
+            if (photoUrl != null && !photoUrl.isEmpty()) {
                 binding.textAvatarLetter.setVisibility(View.GONE);
                 binding.imageProfile.setVisibility(View.VISIBLE);
                 Glide.with(binding.imageProfile.getContext())
-                        .load(user.photoUrl)
+                        .load(photoUrl)
                         .circleCrop()
                         .into(binding.imageProfile);
             } else {

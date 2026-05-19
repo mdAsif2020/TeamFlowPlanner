@@ -9,6 +9,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.teamflow.planner.data.AppDatabase;
 import com.teamflow.planner.data.entity.Project;
 import com.teamflow.planner.databinding.ActivityAddProjectBinding;
+import com.teamflow.planner.supabase.SupabaseCallback;
+import com.teamflow.planner.supabase.SupabaseService;
 import com.teamflow.planner.util.EntityTimestamps;
 
 import java.util.concurrent.ExecutorService;
@@ -88,6 +90,7 @@ public class AddProjectActivity extends AppCompatActivity {
                     existing.description = desc;
                     EntityTimestamps.touch(existing);
                     db.projectDao().update(existing);
+                    syncProjectToSupabase(existing);
                 }
             } else {
                 Project p = new Project();
@@ -98,9 +101,34 @@ public class AddProjectActivity extends AppCompatActivity {
                 long now = System.currentTimeMillis();
                 p.createdAt = now;
                 p.lastModified = now;
-                db.projectDao().insert(p);
+                long localId = db.projectDao().insert(p);
+                p.id = localId;
+                syncProjectToSupabase(p);
             }
             runOnUiThread(this::finish);
+        });
+    }
+
+    private void syncProjectToSupabase(Project p) {
+        SupabaseService.ProjectSync sync = new SupabaseService.ProjectSync(
+                p.remoteId,
+                p.name,
+                p.description,
+                p.ownerEmail,
+                p.createdAt
+        );
+
+        SupabaseService.upsertProject(sync, new SupabaseCallback<Long>() {
+            @Override
+            public void onSuccess(Long remoteId) {
+                p.remoteId = remoteId;
+                db.projectDao().update(p);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                // Ignore sync errors for now, will retry later or manual sync
+            }
         });
     }
 }

@@ -21,7 +21,10 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.teamflow.planner.data.AppDatabase;
 import com.teamflow.planner.data.entity.TeamMember;
 import com.teamflow.planner.data.entity.User;
+import com.teamflow.planner.data.entity.Project;
 import com.teamflow.planner.databinding.ActivityTeamMembersBinding;
+import com.teamflow.planner.supabase.SupabaseCallback;
+import com.teamflow.planner.supabase.SupabaseService;
 import com.teamflow.planner.ui.adapter.TeamMemberRosterAdapter;
 
 import java.util.ArrayList;
@@ -88,8 +91,46 @@ public class TeamMembersActivity extends AppCompatActivity {
 
         // Load registered users for suggestions
         loadRegisteredUsers();
+        syncMembersFromSupabase();
 
         binding.fabAddMember.setOnClickListener(v -> showAddMemberDialog());
+    }
+
+    private void syncMembersFromSupabase() {
+        io.execute(() -> {
+            Project p = db.projectDao().getProjectById(projectId);
+            if (p != null && p.remoteId != null) {
+                SupabaseService.fetchProjectMembers(p.remoteId, new SupabaseCallback<List<SupabaseService.ProjectMemberSync>>() {
+                    @Override
+                    public void onSuccess(List<SupabaseService.ProjectMemberSync> members) {
+                        io.execute(() -> {
+                            List<TeamMember> localMembers = db.teamMemberDao().getMembersForProjectSync(projectId);
+                            for (SupabaseService.ProjectMemberSync ms : members) {
+                                boolean exists = false;
+                                for (TeamMember tm : localMembers) {
+                                    if (tm.name.equalsIgnoreCase(ms.getUser_name())) {
+                                        exists = true;
+                                        break;
+                                    }
+                                }
+                                if (!exists) {
+                                    TeamMember nm = new TeamMember();
+                                    nm.projectId = projectId;
+                                    nm.name = ms.getUser_name();
+                                    nm.createdAt = System.currentTimeMillis();
+                                    db.teamMemberDao().insert(nm);
+                                }
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(Throwable error) {
+                        // ignore
+                    }
+                });
+            }
+        });
     }
 
     private void loadRegisteredUsers() {

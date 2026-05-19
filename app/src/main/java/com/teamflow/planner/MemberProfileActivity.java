@@ -139,12 +139,67 @@ public class MemberProfileActivity extends AppCompatActivity {
         });
     }
 
+    private String targetMemberEmail;
+
     private void setupOtherMemberProfile() {
         binding.layoutMemberDetails.setVisibility(View.VISIBLE);
-        // Email will be loaded from fetchProfile
         
         binding.buttonInviteToProject.setOnClickListener(v -> {
-            Toast.makeText(this, "Invitation feature coming soon for " + memberName, Toast.LENGTH_SHORT).show();
+            if (targetMemberEmail == null) {
+                Toast.makeText(this, "Fetching member details, please wait...", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            showProjectSelectionDialog();
+        });
+    }
+
+    private void showProjectSelectionDialog() {
+        new Thread(() -> {
+            com.teamflow.planner.data.AppDatabase db = com.teamflow.planner.data.AppDatabase.getInstance(this);
+            java.util.List<com.teamflow.planner.data.entity.Project> projects = db.projectDao().getAllProjectsSync();
+            
+            runOnUiThread(() -> {
+                if (projects.isEmpty()) {
+                    Toast.makeText(this, "You have no projects to invite them to.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                String[] projectNames = new String[projects.size()];
+                for (int i = 0; i < projects.size(); i++) {
+                    projectNames[i] = projects.get(i).name;
+                }
+
+                new androidx.appcompat.app.AlertDialog.Builder(this)
+                        .setTitle("Select Project")
+                        .setItems(projectNames, (dialog, which) -> {
+                            com.teamflow.planner.data.entity.Project selected = projects.get(which);
+                            sendInvitation(selected);
+                        })
+                        .show();
+            });
+        }).start();
+    }
+
+    private void sendInvitation(com.teamflow.planner.data.entity.Project project) {
+        SupabaseService.Invitation invite = new SupabaseService.Invitation(
+                null,
+                project.id,
+                project.name,
+                sessionManager.getUserEmail(),
+                targetMemberEmail,
+                "PENDING"
+        );
+
+        SupabaseService.sendInvitation(invite, new SupabaseCallback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                runOnUiThread(() -> Toast.makeText(MemberProfileActivity.this, "Invitation sent!", Toast.LENGTH_SHORT).show());
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                runOnUiThread(() -> Toast.makeText(MemberProfileActivity.this, "Failed to send invitation", Toast.LENGTH_SHORT).show());
+            }
         });
     }
 
@@ -172,6 +227,7 @@ public class MemberProfileActivity extends AppCompatActivity {
                     }
                     if (profile.getEmail() != null) {
                         binding.textMemberEmail.setText(profile.getEmail());
+                        targetMemberEmail = profile.getEmail();
                     }
                 });
             }
@@ -192,68 +248,88 @@ public class MemberProfileActivity extends AppCompatActivity {
     private void uploadProfileImage() {
         if (selectedImageUri == null) return;
         
-        try (InputStream inputStream = getContentResolver().openInputStream(selectedImageUri);
-             ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream()) {
-            
-            if (inputStream == null) return;
+        // Capture data on UI thread
+        String bio = binding.inputBio.getText().toString().trim();
+        String phone = binding.inputPhone.getText().toString().trim();
+        String name = binding.inputName.getText().toString().trim();
+        String userId = sessionManager.getUserId();
+        String email = sessionManager.getUserEmail();
 
-            int bufferSize = 1024;
-            byte[] buffer = new byte[bufferSize];
-            int len;
-            while ((len = inputStream.read(buffer)) != -1) {
-                byteBuffer.write(buffer, 0, len);
-            }
-            byte[] imageBytes = byteBuffer.toByteArray();
-            
-            String userId = String.valueOf(sessionManager.getUserId());
-            
-            SupabaseService.uploadProfileImage(userId, imageBytes, new SupabaseCallback<>() {
-                @Override
-                public void onSuccess(String url) {
-                    // Now update profile with the new photo URL
-                    SupabaseService.Profile update = new SupabaseService.Profile(
-                            userId,
-                            sessionManager.getUserName(),
-                            sessionManager.getUserEmail(),
-                            binding.inputBio.getText().toString(),
-                            binding.inputPhone.getText().toString(),
-                            url
-                    );
-                    
-                    SupabaseService.updateProfile(update, new SupabaseCallback<>() {
-                        @Override
-                        public void onSuccess(Void result) {
-                            runOnUiThread(() -> {
-                                sessionManager.updateUserPhotoUrl(url);
-                                loadProfileImage(url);
-                                Toast.makeText(MemberProfileActivity.this, "Profile image updated!", Toast.LENGTH_SHORT).show();
-                            });
-                        }
-
-                        @Override
-                        public void onError(Throwable error) {
-                            runOnUiThread(() -> Toast.makeText(MemberProfileActivity.this, "Failed to update profile record", Toast.LENGTH_SHORT).show());
-                        }
-                    });
-                }
-
-                @Override
-                public void onError(Throwable error) {
-                    runOnUiThread(() -> Toast.makeText(MemberProfileActivity.this, "Upload failed: " + error.getMessage(), Toast.LENGTH_SHORT).show());
-                }
-            });
-            
-        } catch (Exception e) {
-            Toast.makeText(this, "Failed to process image", Toast.LENGTH_SHORT).show();
+        if (userId == null) {
+            Toast.makeText(this, "User ID not found. Please log in again.", Toast.LENGTH_SHORT).show();
+            return;
         }
+
+        // Processing and uploading in background
+        new Thread(() -> {
+            try (InputStream inputStream = getContentResolver().openInputStream(selectedImageUri);
+                 ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream()) {
+                
+                if (inputStream == null) return;
+
+                byte[] buffer = new byte[4096];
+                int len;
+                while ((len = inputStream.read(buffer)) != -1) {
+                    byteBuffer.write(buffer, 0, len);
+                }
+                byte[] imageBytes = byteBuffer.toByteArray();
+                
+                SupabaseService.uploadProfileImage(userId, imageBytes, new SupabaseCallback<String>() {
+                    @Override
+                    public void onSuccess(String url) {
+                        // Use captured values to avoid accessing UI from background thread
+                        SupabaseService.Profile update = new SupabaseService.Profile(
+                                userId, name, email, bio, phone, url
+                        );
+                        
+                        SupabaseService.updateProfile(update, new SupabaseCallback<Void>() {
+                            @Override
+                            public void onSuccess(Void result) {
+                                runOnUiThread(() -> {
+                                    sessionManager.updateUserPhotoUrl(url);
+                                    // Pass true to force refresh cache
+                                    loadProfileImage(url, true);
+                                    Toast.makeText(MemberProfileActivity.this, "Profile image updated!", Toast.LENGTH_SHORT).show();
+                                });
+                            }
+
+                            @Override
+                            public void onError(Throwable error) {
+                                runOnUiThread(() -> Toast.makeText(MemberProfileActivity.this, "Failed to update profile record", Toast.LENGTH_SHORT).show());
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(Throwable error) {
+                        runOnUiThread(() -> Toast.makeText(MemberProfileActivity.this, "Upload failed: " + error.getMessage(), Toast.LENGTH_SHORT).show());
+                    }
+                });
+                
+            } catch (Exception e) {
+                runOnUiThread(() -> Toast.makeText(MemberProfileActivity.this, "Failed to process image", Toast.LENGTH_SHORT).show());
+            }
+        }).start();
     }
 
     private void loadProfileImage(String url) {
+        loadProfileImage(url, false);
+    }
+
+    private void loadProfileImage(String url, boolean forceRefresh) {
+        if (url == null || url.isEmpty()) return;
+
         binding.textAvatarLetter.setVisibility(View.GONE);
         binding.imageProfile.setVisibility(View.VISIBLE);
-        Glide.with(this)
+
+        com.bumptech.glide.RequestBuilder<android.graphics.drawable.Drawable> builder = Glide.with(this)
                 .load(url)
-                .centerCrop()
-                .into(binding.imageProfile);
+                .centerCrop();
+
+        if (forceRefresh) {
+            builder = builder.signature(new com.bumptech.glide.signature.ObjectKey(System.currentTimeMillis()));
+        }
+
+        builder.into(binding.imageProfile);
     }
 }
