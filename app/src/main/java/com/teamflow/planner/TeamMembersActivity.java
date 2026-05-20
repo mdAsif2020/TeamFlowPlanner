@@ -321,12 +321,16 @@ public class TeamMembersActivity extends AppCompatActivity {
                 SupabaseService.sendInvitation(inv, new SupabaseCallback<Void>() {
                     @Override
                     public void onSuccess(Void result) {
-                        runOnUiThread(() -> Toast.makeText(TeamMembersActivity.this, "Invitation sent to " + target.getUsername(), Toast.LENGTH_SHORT).show());
+                        runOnUiThread(() -> {
+                            Toast.makeText(TeamMembersActivity.this, "Invitation sent to " + target.getUsername(), Toast.LENGTH_SHORT).show();
+                        });
                     }
 
                     @Override
                     public void onError(Throwable error) {
-                        runOnUiThread(() -> Toast.makeText(TeamMembersActivity.this, "Failed to send invitation", Toast.LENGTH_SHORT).show());
+                        runOnUiThread(() -> {
+                            Toast.makeText(TeamMembersActivity.this, "Failed to send invitation: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                        });
                     }
                 });
             } catch (Exception e) {

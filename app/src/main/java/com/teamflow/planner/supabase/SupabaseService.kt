@@ -420,10 +420,13 @@ object SupabaseService {
     fun sendInvitation(invitation: Invitation, callback: SupabaseCallback<Void>) {
         scope.launch {
             runCatching {
+                Log.d("SupabaseService", "Sending invitation to ${invitation.invitee_email}")
                 client.from("invitations").insert(invitation)
             }.onSuccess {
+                Log.d("SupabaseService", "Invitation sent successfully")
                 scope.launch(Dispatchers.Main) { callback.onSuccess(null) }
             }.onFailure {
+                Log.e("SupabaseService", "Failed to send invitation", it)
                 scope.launch(Dispatchers.Main) { callback.onError(it) }
             }
         }

@@ -140,7 +140,10 @@ public class InvitationsActivity extends AppCompatActivity {
 
             @Override
             public void onError(Throwable error) {
-                runOnUiThread(() -> Toast.makeText(InvitationsActivity.this, "Failed to update status", Toast.LENGTH_SHORT).show());
+                runOnUiThread(() -> {
+                    String msg = error.getMessage() != null ? error.getMessage() : "Unknown error";
+                    Toast.makeText(InvitationsActivity.this, "Failed to update status: " + msg, Toast.LENGTH_LONG).show();
+                });
             }
         });
     }
@@ -157,7 +160,10 @@ public class InvitationsActivity extends AppCompatActivity {
 
             @Override
             public void onError(Throwable error) {
-                runOnUiThread(() -> Toast.makeText(InvitationsActivity.this, "Failed to update status", Toast.LENGTH_SHORT).show());
+                runOnUiThread(() -> {
+                    String msg = error.getMessage() != null ? error.getMessage() : "Unknown error";
+                    Toast.makeText(InvitationsActivity.this, "Failed to update status: " + msg, Toast.LENGTH_LONG).show();
+                });
             }
         });
     }

@@ -100,8 +100,15 @@ public class AddTaskActivity extends AppCompatActivity {
                     }
                 }
             }
-            binding.inputAssignee.setAdapter(new ArrayAdapter<>(this,
-                    android.R.layout.simple_dropdown_item_1line, suggestions));
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                    android.R.layout.simple_dropdown_item_1line, suggestions);
+            binding.inputAssignee.setAdapter(adapter);
+            
+            // Show dropdown on click to make assignment easier
+            binding.inputAssignee.setOnClickListener(v -> binding.inputAssignee.showDropDown());
+            binding.inputAssignee.setOnFocusChangeListener((v, hasFocus) -> {
+                if (hasFocus) binding.inputAssignee.showDropDown();
+            });
         });
 
         long taskId = getIntent().getLongExtra(EXTRA_TASK_ID, -1L);
