@@ -194,9 +194,13 @@ public class MemberProfileActivity extends AppCompatActivity {
     }
 
     private void sendInvitation(com.teamflow.planner.data.entity.Project project) {
+        if (project.remoteId == null) {
+            Toast.makeText(this, "Project not synced to cloud yet", Toast.LENGTH_SHORT).show();
+            return;
+        }
         SupabaseService.Invitation invite = new SupabaseService.Invitation(
                 null,
-                project.id,
+                project.remoteId,
                 project.name,
                 sessionManager.getUserEmail(),
                 sessionManager.getUserUsername(),

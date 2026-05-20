@@ -189,7 +189,7 @@ public class ProjectActivity extends AppCompatActivity {
                             existing.status = TaskStatus.valueOf(ts.getStatus());
                             existing.priority = TaskPriority.valueOf(ts.getPriority());
                             existing.deadline = ts.getDeadline();
-                            existing.lastModified = ts.getUpdated_at() != null ? ts.getUpdated_at() : System.currentTimeMillis();
+                            existing.lastModified = ts.getLast_modified() != null ? ts.getLast_modified() : System.currentTimeMillis();
                             db.taskDao().insertOrReplace(existing);
                         }
                     });
@@ -265,8 +265,12 @@ public class ProjectActivity extends AppCompatActivity {
                 i.putExtra(ChatActivity.EXTRA_PROJECT_ID, (long) currentProject.remoteId);
                 i.putExtra(ChatActivity.EXTRA_OWNER_EMAIL, currentProject.ownerEmail);
                 startActivity(i);
+            } else if (currentProject != null) {
+                // Project exists locally but not synced. Let's try to sync it now!
+                Toast.makeText(this, "Syncing project to cloud, please wait...", Toast.LENGTH_SHORT).show();
+                syncProjectAndOpenChat(currentProject);
             } else {
-                Toast.makeText(this, "Project not synced to cloud yet", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Project data not loaded", Toast.LENGTH_SHORT).show();
             }
             return true;
         }
@@ -325,6 +329,48 @@ public class ProjectActivity extends AppCompatActivity {
         Collections.sort(copy, sortDeadlineAscending ? DEADLINE_ASC : DEADLINE_DESC);
         taskAdapter.submitList(copy);
         binding.textEmptyTasks.setVisibility(copy.isEmpty() ? View.VISIBLE : View.GONE);
+    }
+
+    private void syncProjectAndOpenChat(Project p) {
+        SupabaseService.ProjectSync syncObj = new SupabaseService.ProjectSync(
+                p.remoteId,
+                p.name,
+                p.description,
+                p.ownerEmail,
+                p.isCompleted,
+                p.isPinned,
+                p.createdAt,
+                p.lastModified
+        );
+
+        SupabaseService.upsertProject(syncObj, new SupabaseCallback<Long>() {
+            @Override
+            public void onSuccess(Long remoteId) {
+                p.remoteId = remoteId;
+                io.execute(() -> {
+                    db.projectDao().update(p);
+                    main.post(() -> {
+                        Toast.makeText(ProjectActivity.this, "Sync successful!", Toast.LENGTH_SHORT).show();
+                        Intent i = new Intent(ProjectActivity.this, ChatActivity.class);
+                        i.putExtra(ChatActivity.EXTRA_PROJECT_ID, remoteId);
+                        i.putExtra(ChatActivity.EXTRA_OWNER_EMAIL, p.ownerEmail);
+                        startActivity(i);
+                    });
+                });
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                main.post(() -> {
+                    String msg = error.getMessage() != null ? error.getMessage() : "Unknown error";
+                    if (msg.contains("infinite recursion")) {
+                        Toast.makeText(ProjectActivity.this, "Database Policy Error: Please run the SQL fix in Supabase dashboard.", Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(ProjectActivity.this, "Sync failed: " + msg, Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
     }
 
     private void confirmDeleteProject() {

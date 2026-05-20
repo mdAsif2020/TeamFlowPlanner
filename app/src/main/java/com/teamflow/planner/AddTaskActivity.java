@@ -308,6 +308,7 @@ public class AddTaskActivity extends AppCompatActivity {
                     p.remoteId,
                     task.title,
                     task.description,
+                    task.notes,
                     task.assignee,
                     task.status.name(),
                     task.priority.name(),

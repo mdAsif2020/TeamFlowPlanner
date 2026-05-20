@@ -90,11 +90,18 @@ public class AddProjectActivity extends AppCompatActivity {
                 : "";
 
         io.execute(() -> {
+            String email = sessionManager.getUserEmail();
+            if (email == null || email.isEmpty()) {
+                runOnUiThread(() -> Toast.makeText(this, "Error: User email not found. Please log in again.", Toast.LENGTH_LONG).show());
+                return;
+            }
+
             if (editingId != null) {
                 Project existing = db.projectDao().getProjectById(editingId);
                 if (existing != null) {
                     existing.name = name;
                     existing.description = desc;
+                    existing.ownerEmail = email; // Ensure email is set
                     EntityTimestamps.touch(existing);
                     db.projectDao().update(existing);
                     syncProjectToSupabase(existing);
@@ -103,7 +110,7 @@ public class AddProjectActivity extends AppCompatActivity {
                 Project p = new Project();
                 p.name = name;
                 p.description = desc;
-                p.ownerEmail = sessionManager.getUserEmail(); // Set Owner
+                p.ownerEmail = email;
                 p.isCompleted = false;
                 long now = System.currentTimeMillis();
                 p.createdAt = now;
@@ -243,25 +250,37 @@ public class AddProjectActivity extends AppCompatActivity {
     }
 
     private void syncProjectToSupabase(Project p) {
+        android.util.Log.d("AddProjectActivity", "Syncing project to Supabase: " + p.name + " (local ID: " + p.id + ")");
         SupabaseService.ProjectSync sync = new SupabaseService.ProjectSync(
                 p.remoteId,
                 p.name,
                 p.description,
                 p.ownerEmail,
-                p.createdAt
+                p.isCompleted,
+                p.isPinned,
+                p.createdAt,
+                p.lastModified
         );
 
         SupabaseService.upsertProject(sync, new SupabaseCallback<Long>() {
             @Override
             public void onSuccess(Long remoteId) {
+                android.util.Log.d("AddProjectActivity", "Project synced successfully. Remote ID: " + remoteId);
                 p.remoteId = remoteId;
-                db.projectDao().update(p);
+                io.execute(() -> {
+                    db.projectDao().update(p);
+                    runOnUiThread(() -> Toast.makeText(AddProjectActivity.this, "Synced to cloud!", Toast.LENGTH_SHORT).show());
+                });
             }
 
             @Override
             public void onError(Throwable error) {
+                android.util.Log.e("AddProjectActivity", "Sync failed: " + error.getMessage(), error);
                 runOnUiThread(() -> {
-                    Toast.makeText(AddProjectActivity.this, "Sync failed: " + error.getMessage(), Toast.LENGTH_LONG).show();
+                    String msg = error.getMessage() != null ? error.getMessage() : "Unknown error";
+                    Toast.makeText(AddProjectActivity.this, "Sync failed: " + msg, Toast.LENGTH_LONG).show();
+                    // Log the error stack trace for debugging
+                    error.printStackTrace();
                 });
             }
         });

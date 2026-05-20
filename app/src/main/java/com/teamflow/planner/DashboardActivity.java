@@ -17,7 +17,6 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.SearchView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.bumptech.glide.Glide;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.teamflow.planner.data.AppDatabase;
 import com.teamflow.planner.data.DailyFocusItem;
@@ -28,13 +27,12 @@ import com.teamflow.planner.data.entity.Project;
 import com.teamflow.planner.data.entity.Task;
 import com.teamflow.planner.data.ProjectListItem;
 import com.teamflow.planner.databinding.ActivityDashboardBinding;
-import com.teamflow.planner.supabase.SupabaseCallback;
-import com.teamflow.planner.supabase.SupabaseService;
 import com.teamflow.planner.databinding.ItemDailyFocusBinding;
 import com.teamflow.planner.supabase.SupabaseCallback;
 import com.teamflow.planner.supabase.SupabaseService;
 import com.teamflow.planner.ui.adapter.ProjectAdapter;
 import com.teamflow.planner.util.NightModeHelper;
+import com.teamflow.planner.util.NotificationHelper;
 import com.teamflow.planner.util.StreakTracker;
 
 import java.text.SimpleDateFormat;
@@ -92,19 +90,13 @@ public class DashboardActivity extends AppCompatActivity {
 
         String currentUserName = sessionManager.getUserName();
         binding.textGreeting.setText("Hi, " + currentUserName + "!");
-        updateProfileDisplay(currentUserName);
-
-        binding.buttonProfile.setOnClickListener(v -> {
-            Intent i = new Intent(this, MemberProfileActivity.class);
-            i.putExtra(MemberProfileActivity.EXTRA_MEMBER_NAME, sessionManager.getUserName());
-            i.putExtra(MemberProfileActivity.EXTRA_MEMBER_EMAIL, sessionManager.getUserEmail());
-            i.putExtra(MemberProfileActivity.EXTRA_MEMBER_USERNAME, sessionManager.getUserUsername());
-            startActivity(i);
-        });
 
         binding.buttonNotifications.setOnClickListener(v -> {
             startActivity(new Intent(this, NotificationsActivity.class));
         });
+
+        // The profile button was removed from XML, so we remove the click listener as well
+        // binding.buttonProfile.setOnClickListener(v -> ... );
 
         db = AppDatabase.getInstance(this);
 
@@ -198,6 +190,7 @@ public class DashboardActivity extends AppCompatActivity {
 
         setupBottomNavigation();
         setupDashboardInteractions();
+        setupSwipeRefresh();
         loadProfilePicture();
         refreshStreakUi();
     }
@@ -238,6 +231,8 @@ public class DashboardActivity extends AppCompatActivity {
                 n.projectId = project.id;
                 n.remoteId = eventId;
                 db.notificationDao().insert(n);
+
+                NotificationHelper.showNotification(this, n.title, n.message, new Intent(this, ProjectActivity.class).putExtra(ProjectActivity.EXTRA_PROJECT_ID, project.id));
             } else if (local.status != TaskStatus.valueOf(rt.getStatus())) {
                 eventId = "status_change_" + rt.getId() + "_" + rt.getStatus();
                 if (db.notificationDao().exists(eventId)) continue;
@@ -251,6 +246,8 @@ public class DashboardActivity extends AppCompatActivity {
                 n.projectId = project.id;
                 n.remoteId = eventId;
                 db.notificationDao().insert(n);
+
+                NotificationHelper.showNotification(this, n.title, n.message, new Intent(this, ProjectActivity.class).putExtra(ProjectActivity.EXTRA_PROJECT_ID, project.id));
             }
         }
     }
@@ -261,10 +258,39 @@ public class DashboardActivity extends AppCompatActivity {
         SupabaseService.observeInvitations(email, new SupabaseCallback<List<SupabaseService.Invitation>>() {
             @Override
             public void onSuccess(List<SupabaseService.Invitation> invitations) {
-                if (!invitations.isEmpty()) {
-                    runOnUiThread(() -> updateNotificationBadge(true));
-                }
+                if (invitations.isEmpty()) return;
+
+                io.execute(() -> {
+                    boolean newlyAdded = false;
+                    for (SupabaseService.Invitation inv : invitations) {
+                        String eventId = "invitation_" + inv.getId();
+                        if (!db.notificationDao().exists(eventId)) {
+                            // New invitation!
+                            Notification n = new Notification(
+                                    "Project Invitation",
+                                    inv.getInviter_username() + " invited you to join '" + inv.getProject_name() + "'",
+                                    "INVITATION"
+                            );
+                            n.remoteId = eventId;
+                            db.notificationDao().insert(n);
+                            newlyAdded = true;
+
+                            // Show system notification
+                            Intent intent = new Intent(DashboardActivity.this, InvitationsActivity.class);
+                            NotificationHelper.showNotification(
+                                    DashboardActivity.this,
+                                    n.title,
+                                    n.message,
+                                    intent
+                            );
+                        }
+                    }
+                    if (newlyAdded) {
+                        runOnUiThread(() -> updateNotificationBadge(true));
+                    }
+                });
             }
+
             @Override
             public void onError(Throwable error) {}
         });
@@ -274,24 +300,10 @@ public class DashboardActivity extends AppCompatActivity {
         binding.notificationBadge.setVisibility(show ? View.VISIBLE : View.GONE);
     }
 
-    private void updateProfileDisplay(String name) {
-        if (name != null && !name.isEmpty()) {
-            binding.textProfileLetter.setText(String.valueOf(name.charAt(0)).toUpperCase());
-        } else {
-            binding.textProfileLetter.setText("?");
-        }
-    }
-
     private void loadProfilePicture() {
         String currentName = sessionManager.getUserName();
         String currentEmail = sessionManager.getUserEmail();
         binding.textGreeting.setText("Hi, " + currentName + "!");
-        updateProfileDisplay(currentName);
-
-        String cachedPhotoUrl = sessionManager.getUserPhotoUrl();
-        if (cachedPhotoUrl != null) {
-            applyProfileImage(cachedPhotoUrl);
-        }
 
         SupabaseCallback<SupabaseService.Profile> callback = new SupabaseCallback<>() {
             @Override
@@ -300,11 +312,6 @@ public class DashboardActivity extends AppCompatActivity {
                     if (profile.getName() != null) {
                         sessionManager.updateUserName(profile.getName());
                         binding.textGreeting.setText("Hi, " + profile.getName() + "!");
-                        updateProfileDisplay(profile.getName());
-                    }
-                    if (profile.getPhoto_url() != null) {
-                        sessionManager.updateUserPhotoUrl(profile.getPhoto_url());
-                        applyProfileImage(profile.getPhoto_url());
                     }
                 });
             }
@@ -322,22 +329,6 @@ public class DashboardActivity extends AppCompatActivity {
         } else {
             SupabaseService.fetchProfile(currentName, callback);
         }
-    }
-
-    private void applyProfileImage(String url) {
-        if (url == null || url.isEmpty()) return;
-        
-        binding.textProfileLetter.setVisibility(View.GONE);
-        binding.imageProfileToolbar.setVisibility(View.VISIBLE);
-        
-        // Use a signature that changes daily to allow some caching but ensure updates
-        String daySignature = new java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.US).format(new java.util.Date());
-        
-        Glide.with(this)
-                .load(url)
-                .signature(new com.bumptech.glide.signature.ObjectKey(daySignature))
-                .circleCrop()
-                .into(binding.imageProfileToolbar);
     }
 
     private void setupBottomNavigation() {
@@ -455,6 +446,26 @@ public class DashboardActivity extends AppCompatActivity {
         binding.textIndividualTaskCount.setText(myCompletedTasks + " / " + myTotalTasks + " Done");
     }
 
+    private void setupSwipeRefresh() {
+        binding.swipeRefresh.setOnRefreshListener(() -> {
+            syncAllData();
+            // Also refresh projects/tasks from local DB observation which is already active,
+            // but we can manually trigger a stats refresh or similar if needed.
+            // For now, syncAllData handles the cloud-to-local part.
+            
+            // stop refreshing after 2 seconds or when sync completes
+            binding.swipeRefresh.postDelayed(() -> {
+                binding.swipeRefresh.setRefreshing(false);
+            }, 2000);
+        });
+        
+        binding.swipeRefresh.setColorSchemeResources(
+            R.color.neon_blue,
+            R.color.neon_purple,
+            R.color.neon_cyan
+        );
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -465,7 +476,10 @@ public class DashboardActivity extends AppCompatActivity {
 
     private void syncAllData() {
         String email = sessionManager.getUserEmail();
-        if (email == null || email.isEmpty()) return;
+        if (email == null || email.isEmpty()) {
+            if (binding.swipeRefresh != null) binding.swipeRefresh.setRefreshing(false);
+            return;
+        }
 
         SupabaseService.fetchMyProjects(email, new SupabaseCallback<List<SupabaseService.ProjectSync>>() {
             @Override
@@ -489,11 +503,18 @@ public class DashboardActivity extends AppCompatActivity {
                             syncTasksForProject(localP.id, ps.getId());
                         }
                     }
+                    runOnUiThread(() -> {
+                        if (binding.swipeRefresh != null) binding.swipeRefresh.setRefreshing(false);
+                    });
                 });
             }
 
             @Override
-            public void onError(Throwable error) {}
+            public void onError(Throwable error) {
+                runOnUiThread(() -> {
+                    if (binding.swipeRefresh != null) binding.swipeRefresh.setRefreshing(false);
+                });
+            }
         });
     }
 
@@ -515,7 +536,7 @@ public class DashboardActivity extends AppCompatActivity {
                         t.status = TaskStatus.valueOf(ts.getStatus());
                         t.priority = TaskPriority.valueOf(ts.getPriority());
                         t.deadline = ts.getDeadline();
-                        t.lastModified = ts.getUpdated_at() != null ? ts.getUpdated_at() : System.currentTimeMillis();
+                        t.lastModified = ts.getLast_modified() != null ? ts.getLast_modified() : System.currentTimeMillis();
                         db.taskDao().insertOrReplace(t);
                     }
                 });

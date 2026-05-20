@@ -15,6 +15,8 @@ import io.github.jan.supabase.serializer.MoshiSerializer
 import io.github.jan.supabase.annotations.SupabaseExperimental
 import io.github.jan.supabase.storage.Storage
 import io.github.jan.supabase.storage.storage
+import io.ktor.client.engine.okhttp.OkHttp
+import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -39,6 +41,7 @@ object SupabaseService {
             supabaseUrl = BuildConfig.SUPABASE_URL,
             supabaseKey = BuildConfig.SUPABASE_ANON_KEY
         ) {
+            httpEngine = OkHttp.create()
             defaultSerializer = MoshiSerializer()
             install(Auth)
             install(Postgrest)
@@ -64,9 +67,9 @@ object SupabaseService {
                 }
                 client.auth.currentUserOrNull()?.id ?: throw Exception("User ID not found")
             }.onSuccess { userId ->
-                callback.onSuccess(userId)
+                scope.launch(Dispatchers.Main) { callback.onSuccess(userId) }
             }.onFailure {
-                callback.onError(it)
+                scope.launch(Dispatchers.Main) { callback.onError(it) }
             }
         }
     }
@@ -77,9 +80,9 @@ object SupabaseService {
             runCatching {
                 client.auth.resetPasswordForEmail(email)
             }.onSuccess {
-                callback.onSuccess(null)
+                scope.launch(Dispatchers.Main) { callback.onSuccess(null) }
             }.onFailure {
-                callback.onError(it)
+                scope.launch(Dispatchers.Main) { callback.onError(it) }
             }
         }
     }
@@ -99,9 +102,9 @@ object SupabaseService {
                 }
                 client.auth.currentUserOrNull()?.id ?: throw Exception("User registration failed")
             }.onSuccess { userId ->
-                callback.onSuccess(userId)
+                scope.launch(Dispatchers.Main) { callback.onSuccess(userId) }
             }.onFailure {
-                callback.onError(it)
+                scope.launch(Dispatchers.Main) { callback.onError(it) }
             }
         }
     }
@@ -117,9 +120,9 @@ object SupabaseService {
                 }
                 bucket.publicUrl(path)
             }.onSuccess { url ->
-                callback.onSuccess(url)
+                scope.launch(Dispatchers.Main) { callback.onSuccess(url) }
             }.onFailure {
-                callback.onError(it)
+                scope.launch(Dispatchers.Main) { callback.onError(it) }
             }
         }
     }
@@ -146,11 +149,22 @@ object SupabaseService {
     fun updateProfile(profile: Profile, callback: SupabaseCallback<Void>) {
         scope.launch {
             runCatching {
-                client.from("profiles").upsert(profile)
+                // Using a Map ensures that null values (like photo_url) are explicitly sent 
+                // to Supabase to clear the fields. 
+                val updates = mutableMapOf<String, Any?>()
+                updates["id"] = profile.id
+                updates["name"] = profile.name
+                updates["username"] = profile.username
+                updates["email"] = profile.email
+                updates["bio"] = profile.bio
+                updates["phone"] = profile.phone
+                updates["photo_url"] = profile.photo_url
+                
+                client.from("profiles").upsert(updates)
             }.onSuccess {
-                callback.onSuccess(null)
+                scope.launch(Dispatchers.Main) { callback.onSuccess(null) }
             }.onFailure {
-                callback.onError(it)
+                scope.launch(Dispatchers.Main) { callback.onError(it) }
             }
         }
     }
@@ -170,10 +184,12 @@ object SupabaseService {
                     }
                     .decodeSingleOrNull<Profile>()
             }.onSuccess {
-                if (it != null) callback.onSuccess(it)
-                else callback.onError(Exception("Profile not found"))
+                scope.launch(Dispatchers.Main) {
+                    if (it != null) callback.onSuccess(it)
+                    else callback.onError(Exception("Profile not found"))
+                }
             }.onFailure {
-                callback.onError(it)
+                scope.launch(Dispatchers.Main) { callback.onError(it) }
             }
         }
     }
@@ -188,10 +204,12 @@ object SupabaseService {
                     }
                     .decodeSingleOrNull<Profile>()
             }.onSuccess {
-                if (it != null) callback.onSuccess(it)
-                else callback.onError(Exception("Profile not found"))
+                scope.launch(Dispatchers.Main) {
+                    if (it != null) callback.onSuccess(it)
+                    else callback.onError(Exception("Profile not found"))
+                }
             }.onFailure {
-                callback.onError(it)
+                scope.launch(Dispatchers.Main) { callback.onError(it) }
             }
         }
     }
@@ -206,10 +224,12 @@ object SupabaseService {
                     }
                     .decodeSingleOrNull<Profile>()
             }.onSuccess {
-                if (it != null) callback.onSuccess(it)
-                else callback.onError(Exception("Profile not found"))
+                scope.launch(Dispatchers.Main) {
+                    if (it != null) callback.onSuccess(it)
+                    else callback.onError(Exception("Profile not found"))
+                }
             }.onFailure {
-                callback.onError(it)
+                scope.launch(Dispatchers.Main) { callback.onError(it) }
             }
         }
     }
@@ -224,10 +244,12 @@ object SupabaseService {
                     }
                     .decodeSingleOrNull<Profile>()
             }.onSuccess {
-                if (it != null) callback.onSuccess(it)
-                else callback.onError(Exception("Profile not found"))
+                scope.launch(Dispatchers.Main) {
+                    if (it != null) callback.onSuccess(it)
+                    else callback.onError(Exception("Profile not found"))
+                }
             }.onFailure {
-                callback.onError(it)
+                scope.launch(Dispatchers.Main) { callback.onError(it) }
             }
         }
     }
@@ -249,9 +271,9 @@ object SupabaseService {
                     }
                     .decodeList<Profile>()
             }.onSuccess {
-                callback.onSuccess(it)
+                scope.launch(Dispatchers.Main) { callback.onSuccess(it) }
             }.onFailure {
-                callback.onError(it)
+                scope.launch(Dispatchers.Main) { callback.onError(it) }
             }
         }
     }
@@ -266,22 +288,36 @@ object SupabaseService {
         val description: String? = null,
         @com.squareup.moshi.Json(name = "owner_email")
         val owner_email: String? = null,
+        @com.squareup.moshi.Json(name = "is_completed")
+        val is_completed: Boolean = false,
+        @com.squareup.moshi.Json(name = "is_pinned")
+        val is_pinned: Boolean = false,
         @com.squareup.moshi.Json(name = "created_at")
-        val created_at: Long? = null
+        val created_at: Long? = null,
+        @com.squareup.moshi.Json(name = "last_modified")
+        val last_modified: Long? = null
     )
 
     @JvmStatic
     fun upsertProject(project: ProjectSync, callback: SupabaseCallback<Long>) {
         scope.launch {
             runCatching {
-                val response = client.from("projects").upsert(project) {
+                val session = client.auth.currentSessionOrNull()
+                Log.d("SupabaseService", "Syncing project: ${project.name}, ID: ${project.id}, Session: ${session != null}")
+
+                val table = client.from("projects")
+                // Use upsert to handle both insert and update automatically
+                val response = table.upsert(project) {
                     select()
                 }.decodeSingle<ProjectSync>()
-                response.id ?: throw Exception("Failed to get project ID")
+                
+                response.id ?: throw Exception("Failed to get project ID from response")
             }.onSuccess {
-                callback.onSuccess(it)
+                Log.d("SupabaseService", "Project sync success: $it")
+                scope.launch(Dispatchers.Main) { callback.onSuccess(it) }
             }.onFailure {
-                callback.onError(it)
+                Log.e("SupabaseService", "Project sync failure", it)
+                scope.launch(Dispatchers.Main) { callback.onError(it) }
             }
         }
     }
@@ -296,9 +332,9 @@ object SupabaseService {
                     }
                     .decodeSingle<ProjectSync>()
             }.onSuccess {
-                callback.onSuccess(it)
+                scope.launch(Dispatchers.Main) { callback.onSuccess(it) }
             }.onFailure {
-                callback.onError(it)
+                scope.launch(Dispatchers.Main) { callback.onError(it) }
             }
         }
     }
@@ -311,9 +347,9 @@ object SupabaseService {
                     filter { eq("id", id) }
                 }
             }.onSuccess {
-                callback.onSuccess(null)
+                scope.launch(Dispatchers.Main) { callback.onSuccess(null) }
             }.onFailure {
-                callback.onError(it)
+                scope.launch(Dispatchers.Main) { callback.onError(it) }
             }
         }
     }
@@ -338,9 +374,9 @@ object SupabaseService {
             runCatching {
                 client.from("project_members").insert(member)
             }.onSuccess {
-                callback.onSuccess(null)
+                scope.launch(Dispatchers.Main) { callback.onSuccess(null) }
             }.onFailure {
-                callback.onError(it)
+                scope.launch(Dispatchers.Main) { callback.onError(it) }
             }
         }
     }
@@ -355,9 +391,9 @@ object SupabaseService {
                     }
                     .decodeList<ProjectMemberSync>()
             }.onSuccess {
-                callback.onSuccess(it)
+                scope.launch(Dispatchers.Main) { callback.onSuccess(it) }
             }.onFailure {
-                callback.onError(it)
+                scope.launch(Dispatchers.Main) { callback.onError(it) }
             }
         }
     }
@@ -386,9 +422,9 @@ object SupabaseService {
             runCatching {
                 client.from("invitations").insert(invitation)
             }.onSuccess {
-                callback.onSuccess(null)
+                scope.launch(Dispatchers.Main) { callback.onSuccess(null) }
             }.onFailure {
-                callback.onError(it)
+                scope.launch(Dispatchers.Main) { callback.onError(it) }
             }
         }
     }
@@ -404,9 +440,9 @@ object SupabaseService {
                     }
                     .decodeList<Invitation>()
             }.onSuccess {
-                callback.onSuccess(it)
+                scope.launch(Dispatchers.Main) { callback.onSuccess(it) }
             }.onFailure {
-                callback.onError(it)
+                scope.launch(Dispatchers.Main) { callback.onError(it) }
             }
         }
     }
@@ -421,9 +457,9 @@ object SupabaseService {
                     filter { eq("id", id) }
                 }
             }.onSuccess {
-                callback.onSuccess(null)
+                scope.launch(Dispatchers.Main) { callback.onSuccess(null) }
             }.onFailure {
-                callback.onError(it)
+                scope.launch(Dispatchers.Main) { callback.onError(it) }
             }
         }
     }
@@ -438,11 +474,17 @@ object SupabaseService {
                         Invitation::id,
                         filter = FilterOperation("invitee_email", FilterOperator.EQ, email)
                     )
-                    .onEach { callback.onSuccess(it.filter { inv -> inv.status == "PENDING" }) }
-                    .catch { callback.onError(it) }
+                    .onEach { items ->
+                        scope.launch(Dispatchers.Main) {
+                            callback.onSuccess(items.filter { inv -> inv.status == "PENDING" })
+                        }
+                    }
+                    .catch { e ->
+                        scope.launch(Dispatchers.Main) { callback.onError(e) }
+                    }
                     .collect { }
             } catch (e: Exception) {
-                callback.onError(e)
+                scope.launch(Dispatchers.Main) { callback.onError(e) }
             }
         }
     }
@@ -457,6 +499,8 @@ object SupabaseService {
         val title: String? = null,
         @com.squareup.moshi.Json(name = "description")
         val description: String? = null,
+        @com.squareup.moshi.Json(name = "notes")
+        val notes: String? = null,
         @com.squareup.moshi.Json(name = "assignee")
         val assignee: String? = null,
         @com.squareup.moshi.Json(name = "status")
@@ -465,22 +509,30 @@ object SupabaseService {
         val priority: String? = null,
         @com.squareup.moshi.Json(name = "deadline")
         val deadline: Long? = null,
-        @com.squareup.moshi.Json(name = "updated_at")
-        val updated_at: Long? = null
+        @com.squareup.moshi.Json(name = "last_modified")
+        val last_modified: Long? = null
     )
 
     @JvmStatic
     fun upsertTask(task: TaskSync, callback: SupabaseCallback<Long>) {
         scope.launch {
             runCatching {
-                val response = client.from("tasks").upsert(task) {
+                val session = client.auth.currentSessionOrNull()
+                Log.d("SupabaseService", "Syncing task: ${task.title}, ID: ${task.id}, Session: ${session != null}")
+
+                val table = client.from("tasks")
+                // Use upsert to handle both insert and update automatically
+                val response = table.upsert(task) {
                     select()
                 }.decodeSingle<TaskSync>()
-                response.id ?: throw Exception("Failed to get task ID")
+                
+                response.id ?: throw Exception("Failed to get task ID from response")
             }.onSuccess {
-                callback.onSuccess(it)
+                Log.d("SupabaseService", "Task sync success: $it")
+                scope.launch(Dispatchers.Main) { callback.onSuccess(it) }
             }.onFailure {
-                callback.onError(it)
+                Log.e("SupabaseService", "Task sync failure", it)
+                scope.launch(Dispatchers.Main) { callback.onError(it) }
             }
         }
     }
@@ -495,9 +547,9 @@ object SupabaseService {
                     }
                     .decodeList<TaskSync>()
             }.onSuccess {
-                callback.onSuccess(it)
+                scope.launch(Dispatchers.Main) { callback.onSuccess(it) }
             }.onFailure {
-                callback.onError(it)
+                scope.launch(Dispatchers.Main) { callback.onError(it) }
             }
         }
     }
@@ -510,9 +562,9 @@ object SupabaseService {
                     filter { eq("id", taskId) }
                 }
             }.onSuccess {
-                callback.onSuccess(null)
+                scope.launch(Dispatchers.Main) { callback.onSuccess(null) }
             }.onFailure {
-                callback.onError(it)
+                scope.launch(Dispatchers.Main) { callback.onError(it) }
             }
         }
     }
@@ -527,11 +579,15 @@ object SupabaseService {
                         TaskSync::id,
                         filter = FilterOperation("project_id", FilterOperator.EQ, projectId)
                     )
-                    .onEach { callback.onSuccess(it) }
-                    .catch { callback.onError(it) }
+                    .onEach { items ->
+                        scope.launch(Dispatchers.Main) { callback.onSuccess(items) }
+                    }
+                    .catch { e ->
+                        scope.launch(Dispatchers.Main) { callback.onError(e) }
+                    }
                     .collect { }
             } catch (e: Exception) {
-                callback.onError(e)
+                scope.launch(Dispatchers.Main) { callback.onError(e) }
             }
         }
     }
@@ -558,9 +614,9 @@ object SupabaseService {
 
                 (owned + memberOf).distinctBy { it.id }
             }.onSuccess {
-                callback.onSuccess(it)
+                scope.launch(Dispatchers.Main) { callback.onSuccess(it) }
             }.onFailure {
-                callback.onError(it)
+                scope.launch(Dispatchers.Main) { callback.onError(it) }
             }
         }
     }
@@ -592,9 +648,9 @@ object SupabaseService {
                     }
                     .decodeList<MessageRow>()
             }.onSuccess { rows ->
-                callback.onSuccess(rows)
+                scope.launch(Dispatchers.Main) { callback.onSuccess(rows) }
             }.onFailure {
-                callback.onError(it)
+                scope.launch(Dispatchers.Main) { callback.onError(it) }
             }
         }
     }
@@ -618,9 +674,9 @@ object SupabaseService {
             runCatching {
                 client.from("messages").insert(row)
             }.onSuccess {
-                callback.onSuccess(null)
+                scope.launch(Dispatchers.Main) { callback.onSuccess(null) }
             }.onFailure {
-                callback.onError(it)
+                scope.launch(Dispatchers.Main) { callback.onError(it) }
             }
         }
     }
@@ -644,11 +700,15 @@ object SupabaseService {
                         MessageRow::id,
                         filter = FilterOperation("project_id", FilterOperator.EQ, projectId)
                     )
-                    .onEach { callback.onSuccess(it) }
-                    .catch { callback.onError(it) }
+                    .onEach { items ->
+                        scope.launch(Dispatchers.Main) { callback.onSuccess(items) }
+                    }
+                    .catch { e ->
+                        scope.launch(Dispatchers.Main) { callback.onError(e) }
+                    }
                     .collect { }
             } catch (e: Exception) {
-                callback.onError(e)
+                scope.launch(Dispatchers.Main) { callback.onError(e) }
             }
         }
     }

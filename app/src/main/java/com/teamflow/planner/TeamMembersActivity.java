@@ -94,8 +94,40 @@ public class TeamMembersActivity extends AppCompatActivity {
         // Load registered users for suggestions
         loadRegisteredUsers();
         syncMembersFromSupabase();
+        ensureProjectSynced();
 
         binding.fabAddMember.setOnClickListener(v -> showAddMemberDialog());
+    }
+
+    private void ensureProjectSynced() {
+        io.execute(() -> {
+            Project p = db.projectDao().getProjectById(projectId);
+            if (p != null && p.remoteId == null) {
+                // If it's missing remoteId, try to sync it now
+                SupabaseService.ProjectSync syncObj = new SupabaseService.ProjectSync(
+                        null,
+                        p.name,
+                        p.description,
+                        p.ownerEmail,
+                        p.isCompleted,
+                        p.isPinned,
+                        p.createdAt,
+                        p.lastModified
+                );
+                SupabaseService.upsertProject(syncObj, new SupabaseCallback<Long>() {
+                    @Override
+                    public void onSuccess(Long remoteId) {
+                        p.remoteId = remoteId;
+                        db.projectDao().update(p);
+                    }
+
+                    @Override
+                    public void onError(Throwable error) {
+                        // Log or handle error if needed
+                    }
+                });
+            }
+        });
     }
 
     private void syncMembersFromSupabase() {
@@ -192,70 +224,114 @@ public class TeamMembersActivity extends AppCompatActivity {
     }
 
     private void searchAndInvite(String query) {
-        SupabaseService.searchProfiles(query, new SupabaseCallback<List<SupabaseService.Profile>>() {
-            @Override
-            public void onSuccess(List<SupabaseService.Profile> results) {
-                if (results == null || results.isEmpty()) {
-                    runOnUiThread(() -> Toast.makeText(TeamMembersActivity.this, "User not found", Toast.LENGTH_SHORT).show());
-                    return;
-                }
-
-                // If multiple, maybe find exact username match
-                SupabaseService.Profile target = results.get(0);
-                for (SupabaseService.Profile p : results) {
-                    if (query.equalsIgnoreCase(p.getUsername()) || query.equalsIgnoreCase(p.getEmail())) {
-                        target = p;
-                        break;
-                    }
-                }
-
-                SupabaseService.Profile finalTarget = target;
-                runOnUiThread(() -> {
-                    new MaterialAlertDialogBuilder(TeamMembersActivity.this)
-                            .setTitle("Send Invitation")
-                            .setMessage("Invite " + finalTarget.getName() + " (@" + finalTarget.getUsername() + ") to this project?")
-                            .setPositiveButton("Send", (d, w) -> sendActualInvitation(finalTarget))
-                            .setNegativeButton("Cancel", null)
-                            .show();
-                });
-            }
-
-            @Override
-            public void onError(Throwable error) {
-                runOnUiThread(() -> Toast.makeText(TeamMembersActivity.this, "Search failed: " + error.getMessage(), Toast.LENGTH_SHORT).show());
-            }
-        });
-    }
-
-    private void sendActualInvitation(SupabaseService.Profile target) {
-        io.execute(() -> {
-            Project project = db.projectDao().getProjectById(projectId);
-            if (project == null || project.remoteId == null) {
-                runOnUiThread(() -> Toast.makeText(TeamMembersActivity.this, "Project not synced to cloud yet", Toast.LENGTH_SHORT).show());
-                return;
-            }
-
-            SupabaseService.Invitation inv = new SupabaseService.Invitation(
-                    null,
-                    project.remoteId,
-                    project.name,
-                    sessionManager.getUserEmail(),
-                    sessionManager.getUserUsername(),
-                    target.getEmail(),
-                    "PENDING"
-            );
-
-            SupabaseService.sendInvitation(inv, new SupabaseCallback<Void>() {
+        try {
+            SupabaseService.searchProfiles(query, new SupabaseCallback<List<SupabaseService.Profile>>() {
                 @Override
-                public void onSuccess(Void result) {
-                    runOnUiThread(() -> Toast.makeText(TeamMembersActivity.this, "Invitation sent to " + target.getUsername(), Toast.LENGTH_SHORT).show());
+                public void onSuccess(List<SupabaseService.Profile> results) {
+                    if (results == null || results.isEmpty()) {
+                        runOnUiThread(() -> Toast.makeText(TeamMembersActivity.this, "User not found", Toast.LENGTH_SHORT).show());
+                        return;
+                    }
+
+                    // If multiple, maybe find exact username match
+                    SupabaseService.Profile target = results.get(0);
+                    for (SupabaseService.Profile p : results) {
+                        if (p.getUsername() != null && (query.equalsIgnoreCase(p.getUsername()) || query.equalsIgnoreCase(p.getEmail()))) {
+                            target = p;
+                            break;
+                        }
+                    }
+
+                    SupabaseService.Profile finalTarget = target;
+                    runOnUiThread(() -> {
+                        try {
+                            new MaterialAlertDialogBuilder(TeamMembersActivity.this)
+                                    .setTitle("Send Invitation")
+                                    .setMessage("Invite " + (finalTarget.getName() != null ? finalTarget.getName() : finalTarget.getUsername()) + " (@" + finalTarget.getUsername() + ") to this project?")
+                                    .setPositiveButton("Send", (d, w) -> sendActualInvitation(finalTarget))
+                                    .setNegativeButton("Cancel", null)
+                                    .show();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
                 }
 
                 @Override
                 public void onError(Throwable error) {
-                    runOnUiThread(() -> Toast.makeText(TeamMembersActivity.this, "Failed to send invitation", Toast.LENGTH_SHORT).show());
+                    runOnUiThread(() -> Toast.makeText(TeamMembersActivity.this, "Search failed: " + error.getMessage(), Toast.LENGTH_SHORT).show());
                 }
             });
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Error during search", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void sendActualInvitation(SupabaseService.Profile target) {
+        io.execute(() -> {
+            try {
+                Project project = db.projectDao().getProjectById(projectId);
+                if (project == null) {
+                    runOnUiThread(() -> Toast.makeText(TeamMembersActivity.this, "Project not found", Toast.LENGTH_SHORT).show());
+                    return;
+                }
+
+                if (project.remoteId == null) {
+                    // One last attempt to sync if remoteId is still null
+                    SupabaseService.ProjectSync syncObj = new SupabaseService.ProjectSync(
+                            null,
+                            project.name,
+                            project.description,
+                            project.ownerEmail,
+                            project.isCompleted,
+                            project.isPinned,
+                            project.createdAt,
+                            project.lastModified
+                    );
+                    SupabaseService.upsertProject(syncObj, new SupabaseCallback<Long>() {
+                        @Override
+                        public void onSuccess(Long remoteId) {
+                            project.remoteId = remoteId;
+                            io.execute(() -> {
+                                db.projectDao().update(project);
+                                // Retry sending invitation
+                                sendActualInvitation(target);
+                            });
+                        }
+
+                        @Override
+                        public void onError(Throwable error) {
+                            runOnUiThread(() -> Toast.makeText(TeamMembersActivity.this, "Sync failed: " + error.getMessage(), Toast.LENGTH_SHORT).show());
+                        }
+                    });
+                    return;
+                }
+
+                SupabaseService.Invitation inv = new SupabaseService.Invitation(
+                        null,
+                        project.remoteId,
+                        project.name,
+                        sessionManager.getUserEmail(),
+                        sessionManager.getUserUsername(),
+                        target.getEmail(),
+                        "PENDING"
+                );
+
+                SupabaseService.sendInvitation(inv, new SupabaseCallback<Void>() {
+                    @Override
+                    public void onSuccess(Void result) {
+                        runOnUiThread(() -> Toast.makeText(TeamMembersActivity.this, "Invitation sent to " + target.getUsername(), Toast.LENGTH_SHORT).show());
+                    }
+
+                    @Override
+                    public void onError(Throwable error) {
+                        runOnUiThread(() -> Toast.makeText(TeamMembersActivity.this, "Failed to send invitation", Toast.LENGTH_SHORT).show());
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         });
     }
 
